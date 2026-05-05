@@ -1,0 +1,15 @@
+{
+  "config": {
+    "admin_password": "admin123",
+    "site_name": "486Network image",
+    "entry_subtitle": "摄影师专属返图选图平台",
+    "entry_subtitle_mode": "hitokoto",
+    "entry_bg": "/uploads/bg/entry_bg.jpg",
+    "entry_bg_mode": "upload",
+    "cdn_prefix": "",
+    "max_upload_size": 50,
+    "footer_content": "<a href=\"https://486network.com\" target=\"_blank\" style=\"color:rgba(255,255,255,0.6);text-decoration:none;\">© 2026 486Network image</a> — Powered by SY Studio",
+    "success_message": "您已成功选择了 <strong style=\"color:var(--accent)\">{count}</strong> 张照片。<br>摄影师收到后会尽快处理，请耐心等待。"
+  },
+  "albums": {}
+}
