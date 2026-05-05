@@ -1,0 +1,622 @@
+/* ============================================================
+   486Network image - 纯 CSS 图标 & 全局样式
+   ============================================================ */
+
+/* ----- CSS 变量 ----- */
+:root {
+  --primary: #1a1a2e;
+  --secondary: #16213e;
+  --accent: #e94560;
+  --accent-hover: #d63850;
+  --accent-light: #0f3460;
+  --bg-dark: #0f0f23;
+  --bg-card: #ffffff;
+  --bg-gray: #f5f5f7;
+  --text: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-light: #f5f5f7;
+  --border: #d2d2d7;
+  --shadow: 0 2px 20px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: all 0.25s ease;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   纯 CSS 图标系统（零外部依赖，零带宽消耗）
+   ============================================================ */
+
+[class^="icon-"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* -- 勾选 / Checkmark -- */
+.icon-check::before,
+.icon-check::after {
+  content: ''; position: absolute;
+  background: currentColor;
+  border-radius: 2px;
+}
+.icon-check::before {
+  width: 3px; height: 12px;
+  transform: rotate(40deg);
+  left: 12px; top: 3px;
+}
+.icon-check::after {
+  width: 3px; height: 6px;
+  transform: rotate(-40deg);
+  left: 7px; top: 8px;
+}
+
+/* -- 勾选（选中圆圈） -- */
+.icon-check-circle {
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+.icon-check-circle::before {
+  content: ''; position: absolute;
+  width: 3px; height: 9px;
+  background: currentColor;
+  border-radius: 2px;
+  transform: rotate(40deg);
+  left: 11px; top: 4px;
+}
+.icon-check-circle::after {
+  content: ''; position: absolute;
+  width: 3px; height: 5px;
+  background: currentColor;
+  border-radius: 2px;
+  transform: rotate(-40deg);
+  left: 7px; top: 7px;
+}
+
+/* -- 上传 / Upload -- */
+.icon-upload {
+  position: relative;
+}
+.icon-upload::before {
+  content: ''; position: absolute;
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 12px solid currentColor;
+  top: 4px;
+}
+.icon-upload::after {
+  content: ''; position: absolute;
+  width: 2px; height: 14px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 2px;
+}
+
+/* -- 加号 / Plus -- */
+.icon-plus::before,
+.icon-plus::after {
+  content: ''; position: absolute;
+  background: currentColor;
+  border-radius: 2px;
+}
+.icon-plus::before { width: 16px; height: 3px; top: 11px; left: 4px; }
+.icon-plus::after  { width: 3px; height: 16px; top: 4px; left: 11px; border-radius: 2px; }
+
+/* -- 减号 / Minus -- */
+.icon-minus::before {
+  content: ''; position: absolute;
+  width: 16px; height: 3px;
+  background: currentColor;
+  border-radius: 2px;
+  top: 11px; left: 4px;
+}
+
+/* -- 删除 / Trash -- */
+.icon-trash::before {
+  content: ''; position: absolute;
+  width: 16px; height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 3px 3px 2px 2px;
+  top: 7px; left: 4px;
+}
+.icon-trash::after {
+  content: ''; position: absolute;
+  width: 10px; height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 4px; left: 7px;
+  box-shadow: 0 -3px 0 currentColor;
+}
+
+/* -- 设置 / Settings (gear) -- */
+.icon-settings {
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+.icon-settings::before {
+  content: ''; position: absolute;
+  width: 10px; height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  top: 5px; left: 5px;
+}
+.icon-settings::after {
+  content: ''; position: absolute;
+  width: 2px; height: 4px;
+  background: currentColor;
+  border-radius: 1px;
+  top: -4px; left: 9px;
+  box-shadow:
+    0 26px 0 currentColor,
+    -10px 10px 0 currentColor,
+    10px 10px 0 currentColor;
+}
+
+/* -- 关闭 / Close -- */
+.icon-close::before,
+.icon-close::after {
+  content: ''; position: absolute;
+  width: 2px; height: 18px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 3px; left: 11px;
+}
+.icon-close::before { transform: rotate(45deg); }
+.icon-close::after  { transform: rotate(-45deg); }
+
+/* -- 菜单 / Menu (hamburger) -- */
+.icon-menu::before {
+  content: ''; position: absolute;
+  width: 18px; height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 5px; left: 3px;
+  box-shadow: 0 6px 0 currentColor, 0 12px 0 currentColor;
+}
+
+/* -- 左箭头 / Arrow Left -- */
+.icon-arrow-left::before,
+.icon-arrow-left::after {
+  content: ''; position: absolute;
+}
+.icon-arrow-left::before {
+  width: 14px; height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 11px; left: 7px;
+}
+.icon-arrow-left::after {
+  width: 0; height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 8px solid currentColor;
+  top: 5px; left: 2px;
+}
+
+/* -- 右箭头 / Arrow Right -- */
+.icon-arrow-right::before,
+.icon-arrow-right::after {
+  content: ''; position: absolute;
+}
+.icon-arrow-right::before {
+  width: 14px; height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 11px; left: 3px;
+}
+.icon-arrow-right::after {
+  width: 0; height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 8px solid currentColor;
+  top: 5px; left: 14px;
+}
+
+/* -- 下箭头 -- */
+.icon-arrow-down::before,
+.icon-arrow-down::after {
+  content: ''; position: absolute;
+}
+.icon-arrow-down::before {
+  width: 2px; height: 14px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 4px; left: 11px;
+}
+.icon-arrow-down::after {
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid currentColor;
+  top: 15px; left: 5px;
+}
+
+/* -- 眼睛 / Eye（查看）-- */
+.icon-eye::before {
+  content: ''; position: absolute;
+  width: 20px; height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  top: 5px; left: 2px;
+}
+.icon-eye::after {
+  content: ''; position: absolute;
+  width: 6px; height: 6px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  top: 8px; left: 9px;
+}
+
+/* -- 复制 / Copy -- */
+.icon-copy::before {
+  content: ''; position: absolute;
+  width: 12px; height: 15px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  top: 4px; left: 8px;
+  background: var(--bg-card);
+}
+.icon-copy::after {
+  content: ''; position: absolute;
+  width: 12px; height: 15px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  top: 7px; left: 4px;
+}
+
+/* -- 图片占位 / Image -- */
+.icon-image::before {
+  content: ''; position: absolute;
+  width: 20px; height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  top: 4px; left: 2px;
+}
+.icon-image::after {
+  content: ''; position: absolute;
+  width: 6px; height: 6px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  top: 6px; left: 5px;
+  box-shadow: 4px 5px 0 -2px currentColor, 8px 2px 0 -1px currentColor;
+}
+
+/* -- 用户 / User -- */
+.icon-user::before {
+  content: ''; position: absolute;
+  width: 10px; height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  top: 2px; left: 7px;
+}
+.icon-user::after {
+  content: ''; position: absolute;
+  width: 18px; height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  top: 12px; left: 3px;
+}
+
+/* -- 网格 / Grid -- */
+.icon-grid::before {
+  content: ''; position: absolute;
+  width: 4px; height: 4px;
+  background: currentColor;
+  top: 4px; left: 4px;
+  box-shadow:
+    8px 0 0 currentColor, 16px 0 0 currentColor,
+    0 8px 0 currentColor, 8px 8px 0 currentColor,
+    16px 8px 0 currentColor, 0 16px 0 currentColor,
+    8px 16px 0 currentColor, 16px 16px 0 currentColor;
+}
+
+/* -- 下载 / Download -- */
+.icon-download::before {
+  content: ''; position: absolute;
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 11px solid currentColor;
+  top: 5px; left: 3px;
+}
+.icon-download::after {
+  content: ''; position: absolute;
+  width: 2px; height: 14px;
+  background: currentColor;
+  border-radius: 1px;
+  top: 1px; left: 11px;
+}
+
+/* -- 锁 / Lock -- */
+.icon-lock::before {
+  content: ''; position: absolute;
+  width: 14px; height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  top: 10px; left: 5px;
+  background: currentColor;
+}
+.icon-lock::after {
+  content: ''; position: absolute;
+  width: 8px; height: 8px;
+  border: 2px solid currentColor;
+  border-radius: 50% 50% 0 0;
+  top: 2px; left: 8px;
+  border-bottom: none;
+}
+
+/* -- 链接 / Link -- */
+.icon-link::before {
+  content: ''; position: absolute;
+  width: 6px; height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  top: 5px; left: 4px;
+  transform: rotate(-45deg);
+}
+.icon-link::after {
+  content: ''; position: absolute;
+  width: 6px; height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  top: 5px; left: 14px;
+  transform: rotate(-45deg);
+}
+
+/* -- 照片（风景框）-- */
+.icon-photo::before {
+  content: ''; position: absolute;
+  width: 20px; height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  top: 4px; left: 2px;
+}
+.icon-photo::after {
+  content: '⛰'; position: absolute;
+  font-size: 10px;
+  top: 6px; left: 6px;
+  opacity: 0.5;
+}
+
+/* -- 警告 / Alert -- */
+.icon-alert {
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+.icon-alert::before {
+  content: '!'; position: absolute;
+  font-weight: 700;
+  font-size: 16px;
+  top: 0; left: 0;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* -- 信息 / Info -- */
+.icon-info {
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  font-style: normal;
+  font-weight: 700;
+}
+.icon-info::before { content: 'i'; position: absolute; font-size: 14px; top: 1px; }
+
+/* ============================================================
+   通用组件
+   ============================================================ */
+
+/* 按钮基础 */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  line-height: 1;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary {
+  background: var(--primary);
+  color: white;
+}
+.btn-secondary:hover { background: var(--secondary); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--bg-gray); border-color: #bbb; }
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+.btn-danger:hover { background: #c82333; }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* 输入框 */
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: var(--transition);
+  outline: none;
+  background: white;
+}
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
+}
+
+/* 卡片 */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Toast 提示 */
+.toast-container {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 14px;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s;
+  min-width: 260px;
+}
+.toast-success { background: #28a745; }
+.toast-error { background: #dc3545; }
+.toast-info { background: var(--primary); }
+@keyframes toastIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes toastOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* 模态框 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-box {
+  background: white;
+  border-radius: var(--radius);
+  padding: 32px;
+  min-width: 380px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 0.2s ease;
+}
+.modal-box h2 {
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* 加载动画 */
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: var(--text-secondary);
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.empty-state .icon-image {
+  width: 64px; height: 64px;
+  font-size: 32px;
+  opacity: 0.3;
+  margin-bottom: 16px;
+}
+.empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; }
+
+/* 响应式工具 */
+@media (max-width: 768px) {
+  .modal-box { min-width: 88vw; padding: 20px; max-width: 98vw; }
+  .toast-container { left: 10px; right: 10px; top: 10px; }
+  .toast { font-size: 13px; padding: 12px 16px; min-width: auto; }
+
+  /* 按钮触摸友好 */
+  .btn { padding: 12px 18px; font-size: 14px; }
+  .btn-sm { padding: 8px 12px; font-size: 13px; }
+
+  /* 输入框触摸友好 */
+  .input { padding: 12px 14px; font-size: 16px; }  /* 16px 防止 iOS 自动缩放 */
+
+  /* 加载 */
+  .loading-center { padding: 40px 16px; }
+  .spinner { width: 28px; height: 28px; border-width: 3px; }
+
+  /* 空状态 */
+  .empty-state { padding: 50px 16px; }
+  .empty-state .icon-image { width: 48px; height: 48px; }
+  .empty-state h3 { font-size: 16px; }
+}
+
+/* 极窄屏 */
+@media (max-width: 420px) {
+  .modal-box { min-width: 95vw; padding: 16px; }
+  .toast-container { left: 6px; right: 6px; top: 6px; }
+  .toast { border-radius: 6px; }
+}
+
+/* 横屏手机 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal-box { max-height: 90vh; padding: 16px 20px; }
+}
+
+/* 安全区域 */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .toast-container { top: calc(10px + env(safe-area-inset-top, 0px)); }
+}

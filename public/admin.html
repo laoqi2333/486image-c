@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台</title>
+  <link rel="stylesheet" href="/css/main.css?v=2">
+  <style>
+    /* ============================================================
+       486Network image - 管理后台样式
+       ============================================================ */
+
+    /* 登录页面 */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+    }
+    .login-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      width: 380px;
+      max-width: 90vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-card .brand-login {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-card .brand-login h1 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #ff6b6b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .login-card .brand-login p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .login-card .input { margin-bottom: 16px; }
+    .login-card .btn { width: 100%; justify-content: center; padding: 12px; }
+    .login-error { color: #dc3545; font-size: 13px; margin-bottom: 12px; display: none; }
+
+    /* 管理后台布局 */
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      background: var(--primary);
+      color: white;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 200;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-brand {
+      padding: 24px 20px;
+      font-size: 18px;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-brand .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 14px;
+      transition: var(--transition);
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-nav a:hover { background: rgba(255,255,255,0.08); color: white; }
+    .sidebar-nav a.active {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left-color: var(--accent);
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      margin-left: 240px;
+      background: var(--bg-gray);
+      min-height: 100vh;
+    }
+    .top-bar {
+      background: white;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .top-bar h2 { font-size: 20px; font-weight: 600; }
+    .top-bar-actions { display: flex; align-items: center; gap: 10px; }
+
+    .page-content { padding: 24px 28px; }
+
+    /* 汉堡菜单按钮（移动端） */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--text);
+    }
+
+    /* 相册列表 */
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .album-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .album-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .album-cover {
+      width: 100%;
+      height: 180px;
+      background: var(--bg-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .album-cover img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .album-cover .no-cover {
+      color: var(--text-secondary);
+      font-size: 32px;
+      opacity: 0.3;
+    }
+    .album-info { padding: 16px; }
+    .album-info h3 { font-size: 16px; margin-bottom: 4px; }
+    .album-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .album-meta span { display: flex; align-items: center; gap: 4px; }
+    .album-actions {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* 照片管理 */
+    .photo-toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* 上传区域 */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 60px 20px;
+      text-align: center;
+      transition: var(--transition);
+      cursor: pointer;
+      background: white;
+    }
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(233,69,96,0.03);
+    }
+    .upload-zone .icon-upload { width: 48px; height: 48px; margin: 0 auto 16px; opacity: 0.4; }
+    .upload-zone h3 { font-size: 16px; color: var(--text); margin-bottom: 4px; }
+    .upload-zone p { font-size: 13px; color: var(--text-secondary); }
+    .upload-progress {
+      margin-top: 16px;
+      display: none;
+    }
+    .progress-bar {
+      height: 6px;
+      background: var(--bg-gray);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .progress-text { font-size: 13px; color: var(--text-secondary); }
+
+    /* 批量操作栏 */
+    .batch-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: white;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      display: none;
+    }
+    .batch-bar.visible { display: flex; }
+
+    /* 照片网格（管理） */
+    .photo-grid-admin {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .photo-item-admin {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: white;
+      box-shadow: var(--shadow);
+      cursor: default;
+    }
+    .photo-item-admin .thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+    }
+    .photo-item-admin .photo-check {
+      position: absolute;
+      top: 8px; left: 8px;
+      width: 22px; height: 22px;
+      border: 2px solid rgba(255,255,255,0.8);
+      border-radius: 4px;
+      background: rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .photo-item-admin .photo-check.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .photo-item-admin .photo-check.checked::after {
+      content: '';
+      position: absolute;
+      width: 3px; height: 10px;
+      background: white;
+      border-radius: 1px;
+      transform: rotate(40deg);
+      left: 9px; top: 3px;
+    }
+    .photo-item-admin .photo-check.checked::before {
+      content: '';
+      position: absolute;
+      width: 3px; height: 5px;
+      background: white;
+      border-radius: 1px;
+      transform: rotate(-40deg);
+      left: 5px; top: 6px;
+    }
+    .photo-item-admin .photo-del {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 26px; height: 26px;
+      border: none;
+      background: rgba(0,0,0,0.4);
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      opacity: 0;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-item-admin:hover .photo-del { opacity: 1; }
+
+    /* CDN 配置面板 */
+    .config-section {
+      background: white;
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .config-section h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .config-section .form-group {
+      margin-bottom: 14px;
+    }
+    .config-section label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .config-section .hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* 选图结果 */
+    .selection-card {
+      background: white;
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .selection-card .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .selection-card .header h4 { font-size: 15px; }
+    .selection-card .header small { color: var(--text-secondary); font-size: 12px; }
+    .selection-photos {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .selection-photo-item {
+      width: 140px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .selection-photo-item:hover {
+      box-shadow: var(--shadow);
+      border-color: #bbb;
+    }
+    .selection-photo-item .thumb-wrap {
+      width: 100%;
+      height: 90px;
+      overflow: hidden;
+      background: var(--bg-gray);
+      cursor: pointer;
+    }
+    .selection-photo-item .thumb-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.2s;
+    }
+    .selection-photo-item .thumb-wrap:hover img { transform: scale(1.05); }
+    .selection-photo-item .photo-meta {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+    }
+    .selection-photo-item .photo-name {
+      font-size: 11px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+    .selection-photo-item .photo-dl {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 3px;
+      transition: var(--transition);
+    }
+    .selection-photo-item .photo-dl:hover {
+      background: rgba(233,69,96,0.08);
+    }
+    .selection-photo-item .photo-dl .icon-download {
+      width: 12px; height: 12px;
+    }
+
+    /* 设置页面 */
+    .settings-group {
+      max-width: 500px;
+    }
+    .settings-group .form-group { margin-bottom: 20px; }
+
+    /* 共享链接 */
+    .link-display {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: var(--bg-gray);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      word-break: break-all;
+    }
+    .link-display code { flex: 1; font-size: 13px; color: var(--accent); }
+
+    /* 响应式 */
+    /* ============================================================
+       手机端全面优化
+       ============================================================ */
+
+    /* 中屏：平板 & 小笔记本 */
+    @media (max-width: 900px) {
+      .sidebar {
+        position: fixed; top: 0; left: 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 300;
+        box-shadow: 4px 0 30px rgba(0,0,0,0.3);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-backdrop {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 299;
+        display: none;
+      }
+      .sidebar.open ~ .sidebar-backdrop,
+      .sidebar-backdrop.visible { display: block; }
+      .main-content { margin-left: 0; }
+      .menu-toggle { display: flex; }
+      .top-bar h2 { font-size: 17px; }
+    }
+
+    /* 手机 */
+    @media (max-width: 600px) {
+      .page-content { padding: 12px; }
+      .top-bar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+      .top-bar h2 { font-size: 16px; }
+      .top-bar-actions { gap: 6px; }
+      .top-bar-actions .btn { font-size: 12px; padding: 5px 10px; }
+      .top-bar-actions .btn .icon-plus,
+      .top-bar-actions .btn .icon-upload,
+      .top-bar-actions .btn .icon-arrow-left { width: 16px; height: 16px; }
+
+      /* 相册卡片 */
+      .album-grid { grid-template-columns: 1fr; gap: 14px; }
+      .album-cover { height: 140px; }
+      .album-info { padding: 12px; }
+      .album-info h3 { font-size: 15px; }
+      .album-meta { font-size: 12px; gap: 10px; }
+      .album-actions { padding: 8px 12px; gap: 6px; }
+      .album-actions .btn { font-size: 12px; padding: 5px 10px; }
+
+      /* 照片网格（管理） */
+      .photo-grid-admin { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .photo-item-admin .photo-del { opacity: 1; width: 32px; height: 32px; }  /* 触摸可见 */
+      .photo-item-admin .photo-check { width: 26px; height: 26px; }
+
+      /* 批量操作栏固定底部 */
+      .batch-bar {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        z-index: 100;
+        border-radius: 0;
+        margin: 0;
+        padding: 10px 16px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 10px));
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+      }
+      .batch-bar.visible { display: flex; flex-wrap: wrap; gap: 8px; }
+      .batch-bar .btn { font-size: 13px; padding: 8px 14px; }
+
+      /* 登录页 */
+      .login-card { padding: 32px 24px; width: 88vw; }
+      .login-card .brand-login h1 { font-size: 20px; }
+
+      /* 设置 */
+      .config-section { padding: 16px; }
+      .config-section h3 { font-size: 15px; }
+
+      /* 上传区域 */
+      .upload-zone { padding: 40px 16px; }
+
+      /* 链接显示 */
+      .link-display { flex-wrap: wrap; }
+      .link-display code { font-size: 12px; width: 100%; order: -1; word-break: break-all; }
+
+      /* 选图结果 */
+      .selection-card { padding: 14px; }
+      .selection-card .header h4 { font-size: 14px; }
+      .selection-photo-item { width: 120px; }
+      .selection-photo-item .thumb-wrap { height: 72px; }
+      .selection-photo-item .photo-name { font-size: 10px; }
+      .selection-photo-item .photo-dl { font-size: 10px; }
+
+      /* 副标题模式选择 */
+      label:has(input[name="subtitleMode"]) { width: 100%; }
+    }
+
+    /* 极小屏 */
+    @media (max-width: 420px) {
+      .photo-grid-admin { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .top-bar-actions .btn span:not(.icon) { display: none; }  /* 按钮只显示图标 */
+      .album-actions .btn span:nth-child(2) { display: none; }  /* 分享按钮只显示图标 */
+    }
+
+    /* 横屏手机 */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .sidebar { padding-top: 0; }
+      .sidebar-brand { padding: 14px 16px; font-size: 15px; }
+    }
+
+    /* 安全区域 */
+    @supports (padding: env(safe-area-inset-top)) {
+      .sidebar { padding-top: env(safe-area-inset-top, 0px); }
+      .batch-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom, 10px)); }
+    }
+  </style>
+</head>
+<body>
+  <div id="adminApp"></div>
+
+  <script>
+  // ============================================================
+  // 486Network image - 管理后台
+  // ============================================================
+
+  const $ = (s, p) => (p || document).querySelector(s);
+  const $$ = (s, p) => [...(p || document).querySelectorAll(s)];
+
+  // Toast
+  function toast(msg, type = 'success') {
+    const c = document.querySelector('.toast-container') || (() => {
+      const t = document.createElement('div'); t.className = 'toast-container'; document.body.appendChild(t); return t;
+    })();
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`; el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // 模态框
+  function showModal(html) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal-box">${html}</div>`;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function closeModal() {
+    const m = document.querySelector('.modal-overlay');
+    if (m) m.remove();
+  }
+
+  // 加载状态
+  const LOADING = '<div class="loading-center"><div class="spinner"></div><span>加载中...</span></div>';
+
+  let currentView = 'albums';
+  let currentAlbumId = null;
+  let albums = [];
+  let photos = [];
+  let siteName = '486Network image';
+
+  // ============================================================
+  // 初始化 - 登录检查
+  // ============================================================
+  (async function init() {
+    // 先加载站点名称
+    try {
+      const r = await fetch('/api/config/site-name');
+      const d = await r.json();
+      siteName = d.name || '486Network image';
+      document.title = siteName + ' - 管理后台';
+    } catch(e) {}
+
+    const loggedIn = sessionStorage.getItem('486_admin_logged');
+    const app = document.getElementById('adminApp');
+    if (loggedIn === 'true') {
+      renderLayout();
+    } else {
+      renderLogin();
+    }
+  })();
+
+  function renderLogin() {
+    const app = document.getElementById('adminApp');
+    app.innerHTML = `
+      <div class="login-page">
+        <div class="login-card">
+          <div class="brand-login">
+            <h1>${siteName}</h1>
+            <p>摄影师管理后台</p>
+          </div>
+          <div class="login-error" id="loginError">密码错误，请重试</div>
+          <input class="input" type="password" id="pwdInput" placeholder="请输入管理员密码" autofocus>
+          <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">
+            <span class="icon-lock"></span> 登录
+          </button>
+        </div>
+      </div>
+    `;
+    $('#pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  }
+
+  window.doLogin = async function() {
+    const pwd = $('#pwdInput').value;
+    if (!pwd) { $('#loginError').textContent = '请输入密码'; $('#loginError').style.display = 'block'; return; }
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      if (res.ok) {
+        sessionStorage.setItem('486_admin_logged', 'true');
+        renderLayout();
+      } else {
+        $('#loginError').textContent = '密码错误，请重试';
+        $('#loginError').style.display = 'block';
+      }
+    } catch(e) {
+      $('#loginError').textContent = '连接失败，请检查服务';
+      $('#loginError').style.display = 'block';
+    }
+  };
+
+  // ============================================================
+  // 管理后台布局
+  // ============================================================
+  function renderLayout() {
+    const app = document.getElementById('adminApp');
+    app.innerHTML = `
+      <div class="admin-layout">
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-brand">
+            <span class="dot"></span> ${siteName}
+          </div>
+          <nav class="sidebar-nav">
+            <a class="active" onclick="switchView('albums')" data-view="albums">
+              <span class="icon-photo"></span> 相册管理
+            </a>
+            <a onclick="switchView('settings')" data-view="settings">
+              <span class="icon-settings"></span> 系统设置
+            </a>
+          </nav>
+          <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);">
+            <a onclick="doLogout()" style="display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;text-decoration:none;">
+              <span class="icon-close" style="width:16px;height:16px;font-size:12px;"></span> 退出登录
+            </a>
+          </div>
+        </aside>
+
+        <main class="main-content" id="mainContent">
+          <div class="top-bar">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <button class="menu-toggle" onclick="toggleSidebar()">
+                <span class="icon-menu"></span>
+              </button>
+              <h2 id="pageTitle">相册管理</h2>
+            </div>
+            <div class="top-bar-actions" id="topActions"></div>
+          </div>
+          <div class="page-content" id="pageContent">${LOADING}</div>
+        </main>
+      </div>
+    `;
+    switchView('albums');
+  }
+
+  window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    sidebar.classList.toggle('open');
+    if (backdrop) backdrop.classList.toggle('visible');
+  };
+
+  window.doLogout = function() {
+    sessionStorage.removeItem('486_admin_logged');
+    renderLogin();
+  };
+
+  // ============================================================
+  // 视图切换
+  // ============================================================
+  window.switchView = function(view) {
+    currentView = view;
+    // 更新侧边栏高亮
+    $$('.sidebar-nav a').forEach(a => {
+      a.classList.toggle('active', a.dataset.view === view);
+    });
+    document.getElementById('sidebar').classList.remove('open');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (backdrop) backdrop.classList.remove('visible');
+
+    switch(view) {
+      case 'albums': renderAlbums(); break;
+      case 'album-detail': renderAlbumDetail(currentAlbumId); break;
+      case 'selections': renderSelections(); break;
+      case 'settings': renderSettings(); break;
+      default: renderAlbums();
+    }
+  };
+
+  // ============================================================
+  // 相册列表
+  // ============================================================
+  async function renderAlbums() {
+    const content = document.getElementById('pageContent');
+    const title = document.getElementById('pageTitle');
+    title.textContent = '相册管理';
+    const actions = document.getElementById('topActions');
+    actions.innerHTML = `<button class="btn btn-primary btn-sm" onclick="showCreateAlbum()"><span class="icon-plus"></span> 新建相册</button>`;
+    content.innerHTML = LOADING;
+
+    try {
+      const res = await fetch('/api/albums');
+      albums = await res.json();
+      content.innerHTML = albums.length === 0
+        ? `<div class="empty-state">
+            <span class="icon-image" style="width:64px;height:64px;font-size:32px;"></span>
+            <h3>还没有相册</h3>
+            <p>点击右上角「新建相册」开始吧</p>
+          </div>`
+        : `<div class="album-grid">${albums.map(a => `
+            <div class="album-card">
+              <div class="album-cover">
+                ${a.cover
+                  ? `<img src="/uploads/${a.id}/${a.cover}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'no-cover\\'>📷</span>'">`
+                  : `<span class="no-cover">📷</span>`}
+              </div>
+              <div class="album-info" onclick="openAlbum('${a.id}')">
+                <h3>${a.name}</h3>
+                <div class="album-meta">
+                  <span class="icon-image" style="width:14px;height:14px;"></span> ${a.photo_count || 0} 张
+                  <span class="icon-user" style="width:14px;height:14px;"></span> ${a.client_count || 0} 位客户
+                  <span>📅 ${a.created_at ? a.created_at.slice(0,10) : ''}</span>
+                </div>
+              </div>
+              <div class="album-actions">
+                <button class="btn btn-ghost btn-sm" onclick="copyLink('${a.id}');event.stopPropagation();">
+                  <span class="icon-link"></span> 分享
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="showSelections('${a.id}');event.stopPropagation();">
+                  <span class="icon-eye"></span> 选图
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteAlbum('${a.id}');event.stopPropagation();">
+                  <span class="icon-trash"></span>
+                </button>
+              </div>
+            </div>
+          `).join('')}</div>`;
+    } catch(e) {
+      content.innerHTML = `<div class="empty-state"><h3>加载失败</h3><p>${e.message}</p></div>`;
+    }
+  }
+
+  // --- 新建相册 ---
+  window.showCreateAlbum = function() {
+    const m = showModal(`
+      <h2>新建相册</h2>
+      <div class="form-group">
+        <label>相册名称</label>
+        <input class="input" id="newAlbumName" placeholder="例如：20260504棚拍">
+      </div>
+      <div class="form-group">
+        <label>访问密码（可选）</label>
+        <input class="input" id="newAlbumPwd" placeholder="留空即为公开" type="password">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="createAlbum()">创建</button>
+      </div>
+    `);
+  };
+
+  window.createAlbum = async function() {
+    const name = $('#newAlbumName').value.trim();
+    if (!name) { toast('请输入相册名称', 'error'); return; }
+    try {
+      const res = await fetch('/api/albums', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, password: $('#newAlbumPwd').value })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast('相册创建成功');
+        closeModal();
+        renderAlbums();
+      }
+    } catch(e) { toast('创建失败', 'error'); }
+  };
+
+  // --- 删除相册 ---
+  window.deleteAlbum = async function(id) {
+    const a = albums.find(x => x.id === id);
+    if (!confirm(`确定要删除相册「${a ? a.name : ''}」吗？\n所有照片和选图记录将一并删除，不可恢复！`)) return;
+    try {
+      await fetch(`/api/albums/${id}`, { method: 'DELETE' });
+      toast('已删除');
+      renderAlbums();
+    } catch(e) { toast('删除失败', 'error'); }
+  };
+
+  // --- 复制分享链接 ---
+  window.copyLink = function(id) {
+    const link = `${location.origin}/#${id}`;
+    navigator.clipboard.writeText(link).then(() => {
+      toast('链接已复制：' + link);
+    }).catch(() => {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = link;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      toast('链接已复制');
+    });
+  };
+
+  // ============================================================
+  // 相册详情（照片管理）
+  // ============================================================
+  window.openAlbum = function(id) {
+    currentAlbumId = id;
+    switchView('album-detail');
+  };
+
+  async function renderAlbumDetail(albumId) {
+    const content = document.getElementById('pageContent');
+    const title = document.getElementById('pageTitle');
+    title.textContent = '加载中...';
+    const actions = document.getElementById('topActions');
+    actions.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="switchView('albums')"><span class="icon-arrow-left"></span> 返回</button>`;
+    content.innerHTML = LOADING;
+
+    try {
+      const res = await fetch(`/api/albums/${albumId}/photos`);
+      const data = await res.json();
+      const album = data.album;
+      photos = data.photos;
+
+      title.textContent = album.name;
+      actions.innerHTML = `
+        <button class="btn btn-ghost btn-sm" onclick="switchView('albums')"><span class="icon-arrow-left"></span> 返回</button>
+        <button class="btn btn-secondary btn-sm" onclick="showUpload()"><span class="icon-upload"></span> 上传</button>
+        <button class="btn btn-ghost btn-sm" onclick="showSelections('${albumId}')"><span class="icon-eye"></span> 选图结果</button>
+        <button class="btn btn-ghost btn-sm" onclick="showAlbumSettings('${albumId}')"><span class="icon-settings"></span></button>
+      `;
+
+      const shareLink = `${location.origin}/#${albumId}`;
+
+      content.innerHTML = `
+        <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <div class="link-display" style="flex:1;min-width:200px;">
+            <span class="icon-link"></span>
+            <code>${shareLink}</code>
+            <button class="btn btn-ghost btn-sm" onclick="copyLink('${albumId}')">复制</button>
+          </div>
+          <span style="font-size:13px;color:var(--text-secondary);">
+            ${photos.length} 张照片
+            ${data.cdn_prefix ? '| CDN: 已启用' : ''}
+          </span>
+        </div>
+
+        <div class="batch-bar" id="batchBar">
+          <span id="batchCount">已选 0 张</span>
+          <button class="btn btn-danger btn-sm" onclick="batchDelete()"><span class="icon-trash"></span> 删除选中</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearBatch()">取消选择</button>
+        </div>
+
+        ${photos.length === 0
+          ? `<div class="empty-state">
+              <span class="icon-image" style="width:64px;height:64px;font-size:32px;"></span>
+              <h3>相册为空</h3>
+              <p>点击「上传」按钮添加照片</p>
+            </div>`
+          : `<div class="photo-grid-admin" id="photoGridAdmin">
+              ${photos.map((p, i) => `
+                <div class="photo-item-admin" data-id="${p.id}">
+                  <img class="thumb" src="${p.thumb_url}" alt="${p.original_name}" loading="lazy"
+                    onerror="this.src='data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="%23f0f0f0"><rect width="400" height="300"/><text x="200" y="155" text-anchor="middle" fill="%23999" font-size="12">加载失败</text></svg>')}'"
+                    onclick="previewAdminPhoto(${i})">
+                  <div class="photo-check" onclick="toggleBatch('${p.id}')"></div>
+                  <button class="photo-del" onclick="deletePhoto('${p.id}')"><span class="icon-trash"></span></button>
+                </div>
+              `).join('')}
+            </div>`
+        }
+      `;
+    } catch(e) {
+      content.innerHTML = `<div class="empty-state"><h3>加载失败</h3><p>${e.message}</p></div>`;
+    }
+  }
+
+  // --- 上传照片 ---
+  window.showUpload = function() {
+    const m = showModal(`
+      <h2>上传照片</h2>
+      <div class="upload-zone" id="uploadZone">
+        <div class="icon-upload" style="width:48px;height:48px;margin:0 auto 16px;opacity:0.4;"></div>
+        <h3>点击或拖拽图片到此处</h3>
+        <p>支持 JPG/PNG/GIF/WebP，单张最大 50MB</p>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+      </div>
+      <div class="upload-progress" id="uploadProgress">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">准备上传...</div>
+      </div>
+      <div id="uploadPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" id="doUploadBtn" onclick="doUpload()" disabled>上传到相册</button>
+      </div>
+    `);
+
+    const zone = $('#uploadZone');
+    const input = $('#fileInput');
+    let files = [];
+
+    zone.addEventListener('click', () => input.click());
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+    });
+    input.addEventListener('change', () => { if (input.files) handleFiles(input.files); });
+
+    window._uploadFiles = [];
+
+    function handleFiles(filesList) {
+      files = [...filesList].filter(f => f.type.startsWith('image/'));
+      if (files.length === 0) { toast('请选择图片文件', 'error'); return; }
+      window._uploadFiles = files;
+      $('#doUploadBtn').disabled = false;
+      $('#uploadPreview').innerHTML = files.slice(0, 12).map(f =>
+        `<div style="width:60px;height:60px;border-radius:4px;overflow:hidden;border:1px solid var(--border);">
+          <img src="${URL.createObjectURL(f)}" style="width:100%;height:100%;object-fit:cover;"></div>`
+      ).join('');
+      if (files.length > 12) {
+        $('#uploadPreview').insertAdjacentHTML('beforeend', `<div style="width:60px;height:60px;border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-secondary);">+${files.length - 12}</div>`);
+      }
+      zone.querySelector('h3').textContent = `已选择 ${files.length} 张图片`;
+    }
+  };
+
+  window.doUpload = async function() {
+    const files = window._uploadFiles || [];
+    if (files.length === 0) return;
+
+    const btn = $('#doUploadBtn');
+    const progress = $('#uploadProgress');
+    const fill = $('#progressFill');
+    const text = $('#progressText');
+    btn.disabled = true;
+    progress.style.display = 'block';
+
+    const formData = new FormData();
+    files.forEach(f => formData.append('photos', f));
+
+    try {
+      const res = await fetch(`/api/albums/${currentAlbumId}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        fill.style.width = '100%';
+        text.textContent = `上传完成！共 ${data.count} 张`;
+        toast(`成功上传 ${data.count} 张照片`);
+        setTimeout(() => { closeModal(); renderAlbumDetail(currentAlbumId); }, 800);
+      } else {
+        throw new Error(data.error || '上传失败');
+      }
+    } catch(e) {
+      toast(e.message || '上传失败', 'error');
+      text.textContent = '上传失败';
+      btn.disabled = false;
+    }
+  };
+
+  // --- 删除单张照片 ---
+  window.deletePhoto = async function(photoId) {
+    if (!confirm('确定要删除这张照片吗？')) return;
+    try {
+      await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
+      toast('已删除');
+      renderAlbumDetail(currentAlbumId);
+    } catch(e) { toast('删除失败', 'error'); }
+  };
+
+  // --- 批量选择 ---
+  let batchSet = new Set();
+
+  window.toggleBatch = function(id) {
+    const el = $(`.photo-item-admin[data-id="${id}"] .photo-check`);
+    if (!el) return;
+    if (batchSet.has(id)) {
+      batchSet.delete(id);
+      el.classList.remove('checked');
+    } else {
+      batchSet.add(id);
+      el.classList.add('checked');
+    }
+    updateBatchBar();
+  };
+
+  function updateBatchBar() {
+    const bar = $('#batchBar');
+    const count = $('#batchCount');
+    if (!bar || !count) return;
+    if (batchSet.size > 0) {
+      bar.classList.add('visible');
+      count.textContent = `已选 ${batchSet.size} 张`;
+    } else {
+      bar.classList.remove('visible');
+    }
+  }
+
+  window.clearBatch = function() {
+    batchSet.clear();
+    $$('.photo-check.checked').forEach(el => el.classList.remove('checked'));
+    updateBatchBar();
+  };
+
+  window.batchDelete = async function() {
+    if (batchSet.size === 0) return;
+    if (!confirm(`确定要删除选中的 ${batchSet.size} 张照片吗？`)) return;
+    for (const id of batchSet) {
+      try { await fetch(`/api/photos/${id}`, { method: 'DELETE' }); } catch(e) {}
+    }
+    batchSet.clear();
+    toast('批量删除完成');
+    renderAlbumDetail(currentAlbumId);
+  };
+
+  // --- 预览照片 ---
+  window.previewAdminPhoto = function(idx) {
+    const p = photos[idx];
+    if (!p) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'preview-overlay';
+    overlay.innerHTML = `
+      <button class="preview-close" onclick="closePreview()"><span class="icon-close"></span></button>
+      ${photos.length > 1 ? `
+        <button class="preview-nav prev" onclick="previewAdminNav(-1)"><span class="icon-arrow-left"></span></button>
+        <button class="preview-nav next" onclick="previewAdminNav(1)"><span class="icon-arrow-right"></span></button>
+      ` : ''}
+      <img id="previewImg" src="${p.url}" alt="">
+    `;
+    overlay.dataset.idx = idx;
+    overlay.addEventListener('click', e => { if (e.target === overlay) closePreview(); });
+    document.addEventListener('keydown', previewAdminKeyHandler);
+    document.body.appendChild(overlay);
+  };
+
+  window.closePreview = function() {
+    const overlay = document.querySelector('.preview-overlay');
+    if (overlay) overlay.remove();
+    document.removeEventListener('keydown', previewAdminKeyHandler);
+  };
+
+  window.previewAdminNav = function(dir) {
+    const overlay = document.querySelector('.preview-overlay');
+    if (!overlay) return;
+    let idx = parseInt(overlay.dataset.idx) + dir;
+    if (idx < 0) idx = photos.length - 1;
+    if (idx >= photos.length) idx = 0;
+    overlay.dataset.idx = idx;
+    $('#previewImg').src = photos[idx].url;
+  };
+
+  function previewAdminKeyHandler(e) {
+    if (e.key === 'Escape') closePreview();
+    if (e.key === 'ArrowLeft') previewAdminNav(-1);
+    if (e.key === 'ArrowRight') previewAdminNav(1);
+  }
+
+  // --- 相册设置 ---
+  window.showAlbumSettings = async function(albumId) {
+    try {
+      const res = await fetch(`/api/albums/${albumId}/photos`);
+      const data = await res.json();
+      const album = data.album;
+      const m = showModal(`
+        <h2>相册设置</h2>
+        <div class="form-group">
+          <label>相册名称</label>
+          <input class="input" id="editAlbumName" value="${album.name}">
+        </div>
+        <div class="form-group">
+          <label>访问密码</label>
+          <input class="input" id="editAlbumPwd" type="password" value="${album.password || ''}" placeholder="留空即公开">
+        </div>
+        <div class="form-group">
+          <label>CDN 前缀（可选）</label>
+          <input class="input" id="editAlbumCdn" value="${album.cdn_prefix || ''}" placeholder="https://cdn.example.com">
+          <div class="hint">留空使用本地存储，启用后图片URL将使用CDN前缀</div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+          <button class="btn btn-primary" onclick="saveAlbumSettings('${albumId}')">保存</button>
+        </div>
+      `);
+    } catch(e) { toast('加载失败', 'error'); }
+  };
+
+  window.saveAlbumSettings = async function(albumId) {
+    try {
+      await fetch(`/api/albums/${albumId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: $('#editAlbumName').value.trim(),
+          password: $('#editAlbumPwd').value,
+          cdn_prefix: $('#editAlbumCdn').value.trim()
+        })
+      });
+      toast('保存成功');
+      closeModal();
+      renderAlbumDetail(albumId);
+    } catch(e) { toast('保存失败', 'error'); }
+  };
+
+  // ============================================================
+  // 选图结果
+  // ============================================================
+  window.showSelections = function(albumId) {
+    currentAlbumId = albumId;
+    switchView('selections');
+  };
+
+  async function renderSelections() {
+    const content = document.getElementById('pageContent');
+    const title = document.getElementById('pageTitle');
+    title.textContent = '选图结果';
+    const actions = document.getElementById('topActions');
+    actions.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="switchView('albums')"><span class="icon-arrow-left"></span> 返回</button>`;
+    content.innerHTML = LOADING;
+
+    try {
+      const res = await fetch(`/api/albums/${currentAlbumId}/selections`);
+      const data = await res.json();
+      const album = data.album;
+      const selections = data.selections;
+
+      content.innerHTML = `
+        <div style="margin-bottom:20px;">
+          <h3 style="font-size:18px;font-weight:600;">${album.name}</h3>
+          <p style="color:var(--text-secondary);font-size:14px;">共 ${selections.length} 位客户提交了选图</p>
+        </div>
+        ${selections.length === 0
+          ? `<div class="empty-state">
+              <h3>暂无选图</h3>
+              <p>还没有客户提交选图</p>
+            </div>`
+          : selections.map(s => `
+            <div class="selection-card">
+              <div class="header">
+                <h4>客户 #${s.client_id.slice(0, 8)}</h4>
+                <small>${s.selected_at || ''} · 选择了 ${s.count} 张</small>
+              </div>
+              ${s.notes ? `<p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">备注：${s.notes}</p>` : ''}
+              <div class="selection-photos">
+                ${(s.photos || []).map(p => `
+                  <div class="selection-photo-item">
+                    <div class="thumb-wrap" onclick="window.open('/uploads/${currentAlbumId}/${p.filename}','_blank')">
+                      <img src="/uploads/${currentAlbumId}/${p.filename}" alt="${p.original_name}"
+                           onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:#999;font-size:12px;\\'>加载失败</div>'">
+                    </div>
+                    <div class="photo-meta">
+                      <div class="photo-name" title="${escapeHtml(p.original_name)}">${escapeHtml(p.original_name)}</div>
+                      <a class="photo-dl" href="/uploads/${currentAlbumId}/${p.filename}" download="${escapeHtml(p.original_name)}">
+                        <span class="icon-download"></span> 下载
+                      </a>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+      `;
+    } catch(e) {
+      content.innerHTML = `<div class="empty-state"><h3>加载失败</h3><p>${e.message}</p></div>`;
+    }
+  }
+
+  // ============================================================
+  // 系统设置
+  // ============================================================
+  async function renderSettings() {
+    const content = document.getElementById('pageContent');
+    const title = document.getElementById('pageTitle');
+    title.textContent = '系统设置';
+    const actions = document.getElementById('topActions');
+    actions.innerHTML = '';
+
+    // 获取当前配置
+    let cdnPrefix = '', adminPwd = '', footerContent = '', maxUploadSize = 50, curSiteName = siteName, curEntrySubtitle = '摄影师专属返图选图平台', curEntrySubtitleMode = 'custom', curEntryBg = '', curEntryBgMode = '', curSuccessMsg = '';
+    try {
+      const cdnRes = await fetch('/api/config/cdn');
+      const cdnData = await cdnRes.json();
+      cdnPrefix = cdnData.prefix;
+      const pwdRes = await fetch('/api/config/password');
+      const pwdData = await pwdRes.json();
+      adminPwd = pwdData.password;
+      const footerRes = await fetch('/api/config/footer');
+      const footerData = await footerRes.json();
+      footerContent = footerData.content || '';
+      const sizeRes = await fetch('/api/config/upload-size');
+      const sizeData = await sizeRes.json();
+      maxUploadSize = sizeData.maxSizeMB || 50;
+      const nameRes = await fetch('/api/config/site-name');
+      const nameData = await nameRes.json();
+      curSiteName = nameData.name || '486Network image';
+      const subRes = await fetch('/api/config/entry-subtitle');
+      const subData = await subRes.json();
+      curEntrySubtitle = subData.subtitle || '摄影师专属返图选图平台';
+      curEntrySubtitleMode = subData.mode || 'custom';
+      const bgRes = await fetch('/api/config/entry-bg');
+      const bgData = await bgRes.json();
+      curEntryBg = bgData.bg || '';
+      curEntryBgMode = bgData.mode || '';
+      const msgRes = await fetch('/api/config/success-message');
+      const msgData = await msgRes.json();
+      curSuccessMsg = msgData.message || '';
+    } catch(e) {}
+
+    content.innerHTML = `
+      <div class="config-section">
+        <h3><span class="icon-link"></span> CDN 加速配置</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          配置CDN后，所有图片URL将自动使用CDN域名。适合大量图片分发场景。
+        </p>
+        <div class="form-group">
+          <label>CDN 域名前缀</label>
+          <input class="input" id="cdnPrefix" value="${cdnPrefix}" placeholder="https://cdn.yourdomain.com">
+          <div class="hint">示例：https://cdn.example.com。留空即为本地直接访问。</div>
+        </div>
+        <button class="btn btn-primary" onclick="saveCdnConfig()"><span class="icon-check"></span> 保存CDN配置</button>
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-lock"></span> 管理员密码</h3>
+        <div class="settings-group">
+          <div class="form-group">
+            <label>当前密码</label>
+            <input class="input" type="password" id="currentPwd" placeholder="输入当前密码">
+          </div>
+          <div class="form-group">
+            <label>新密码</label>
+            <input class="input" type="password" id="newPwd" placeholder="至少4位">
+          </div>
+          <button class="btn btn-primary" onclick="savePassword()"><span class="icon-check"></span> 修改密码</button>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-settings" style="font-size:12px;"></span> 网站名称</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          自定义客户选图页面和管理后台显示的网站名称。
+        </p>
+        <div class="form-group">
+          <label>网站名称</label>
+          <input class="input" id="siteNameInput" value="${escapeHtml(curSiteName)}"
+                 placeholder="486Network image" maxlength="50">
+          <div class="hint">最多 50 个字符。修改后需刷新页面才能看到完整效果。</div>
+        </div>
+        <button class="btn btn-primary" onclick="saveSiteName()"><span class="icon-check"></span> 保存名称</button>
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-type" style="font-size:13px;font-weight:700;font-style:normal;width:20px;">T</span> 入口副标题</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          自定义客户选图入口页面显示的品牌副标题。
+        </p>
+
+        <!-- 模式选择 -->
+        <div class="form-group">
+          <label>副标题模式</label>
+          <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;padding:8px 16px;border-radius:var(--radius-sm);border:2px solid ${curEntrySubtitleMode === 'custom' ? 'var(--accent)' : 'var(--border)'};background:${curEntrySubtitleMode === 'custom' ? 'rgba(233,69,96,0.04)' : 'white'};">
+              <input type="radio" name="subtitleMode" value="custom" ${curEntrySubtitleMode === 'custom' ? 'checked' : ''}
+                     onchange="toggleSubtitleMode('custom')" style="accent-color:var(--accent);">
+              自定义文字
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;padding:8px 16px;border-radius:var(--radius-sm);border:2px solid ${curEntrySubtitleMode === 'hitokoto' ? 'var(--accent)' : 'var(--border)'};background:${curEntrySubtitleMode === 'hitokoto' ? 'rgba(233,69,96,0.04)' : 'white'};">
+              <input type="radio" name="subtitleMode" value="hitokoto" ${curEntrySubtitleMode === 'hitokoto' ? 'checked' : ''}
+                     onchange="toggleSubtitleMode('hitokoto')" style="accent-color:var(--accent);">
+              一言 API（随机句子）
+            </label>
+          </div>
+        </div>
+
+        <!-- 自定义文字输入（仅在 custom 模式可用） -->
+        <div class="form-group" id="customSubtitleGroup" style="${curEntrySubtitleMode === 'custom' ? '' : 'opacity:0.4;pointer-events:none;'}">
+          <label>副标题文字</label>
+          <input class="input" id="entrySubtitleInput" value="${escapeHtml(curEntrySubtitle)}"
+                 placeholder="摄影师专属返图选图平台" maxlength="100">
+          <div class="hint">最多 100 个字符。留空则不显示副标题。</div>
+        </div>
+
+        <!-- 一言提示 -->
+        <div id="hitokotoHint" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;${curEntrySubtitleMode === 'hitokoto' ? '' : 'display:none;'}">
+          使用 <a href="https://developer.hitokoto.cn/" target="_blank" style="color:var(--accent);">一言 API</a>
+          随机显示一句话，每次刷新页面都会更新。无需额外配置。
+        </div>
+
+        <button class="btn btn-primary" onclick="saveEntrySubtitle()"><span class="icon-check"></span> 保存副标题</button>
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-image"></span> 入口背景图</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          设置客户选图入口页的背景图片。支持本地上传或外链 URL。
+        </p>
+
+        <!-- 当前背景预览 -->
+        ${curEntryBg ? `
+          <div style="margin-bottom:14px;border-radius:8px;overflow:hidden;max-height:160px;background:var(--bg-gray);">
+            <img src="${curEntryBg}" style="width:100%;height:160px;object-fit:cover;display:block;"
+                 onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:#dc3545;\\'>图片加载失败</div>'">
+          </div>
+        ` : ''}
+
+        <!-- 本地上传 -->
+        <div class="form-group">
+          <label>本地上传</label>
+          <input type="file" id="bgFileInput" accept="image/*" style="display:block;margin-bottom:8px;font-size:13px;">
+          <button class="btn btn-primary btn-sm" onclick="uploadEntryBg()"><span class="icon-upload"></span> 上传背景图</button>
+          <div class="hint" id="bgUploadStatus"></div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+
+        <!-- 外链 URL -->
+        <div class="form-group">
+          <label>或使用外链 URL</label>
+          <div style="display:flex;gap:8px;">
+            <input class="input" id="entryBgUrl" value="${escapeHtml(curEntryBg)}"
+                   placeholder="https://example.com/bg.jpg"
+                   style="${curEntryBgMode === 'upload' ? 'opacity:0.5;' : ''}">
+            <button class="btn btn-primary" onclick="saveEntryBgUrl()" style="white-space:nowrap;">应用</button>
+          </div>
+          <div class="hint">支持 jpg/png/webp 等常见图片格式的直链。</div>
+        </div>
+
+        <!-- 清除背景 -->
+        ${curEntryBg ? `
+          <button class="btn btn-ghost btn-sm" onclick="clearEntryBg()" style="color:#dc3545;border-color:#dc3545;">
+            <span class="icon-close"></span> 清除背景图
+          </button>
+        ` : ''}
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-upload"></span> 上传大小限制</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          限制客户上传照片的单个文件大小。修改后实时生效，无需重启服务。
+        </p>
+        <div class="form-group">
+          <label>单张照片最大体积（MB）</label>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input class="input" type="number" id="maxUploadSize" value="${maxUploadSize}"
+                   min="1" max="500" style="max-width:160px;">
+            <span style="font-size:13px;color:var(--text-secondary);">MB（1 ~ 500）</span>
+          </div>
+          <div class="hint">当前限制：每张照片 ≤ <strong id="sizeDisplay">${maxUploadSize}</strong> MB。超过此大小的文件将被拒绝。</div>
+        </div>
+        <button class="btn btn-primary" onclick="saveUploadSize()"><span class="icon-check"></span> 保存限制</button>
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-check"></span> 页脚内容设置</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          自定义客户选图页面底部显示的页脚内容。支持 HTML 标签，例如链接、文字。
+        </p>
+        <div class="form-group">
+          <label>页脚 HTML 内容</label>
+          <textarea class="input" id="footerContent" rows="4"
+            placeholder="例如：&copy; 2025 某某摄影工作室">${escapeHtml(footerContent)}</textarea>
+          <div class="hint">
+            支持 HTML 标签（a、br、span 等）。留空显示默认页脚。
+            <br>示例：<code>&amp;copy; 2025 某某摄影工作室 — &lt;a href="https://example.com"&gt;联系我&lt;/a&gt;</code>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveFooterConfig()"><span class="icon-check"></span> 保存页脚</button>
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-check" style="width:18px;height:18px;"></span> 选图成功提示语</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          客户提交选图后显示的感谢提示。支持 HTML 标签，使用 <code>{count}</code> 表示选择的照片数量。
+        </p>
+        <div class="form-group">
+          <label>提示语 HTML 内容</label>
+          <textarea class="input" id="successMsgInput" rows="4"
+            placeholder="例如：感谢您的选择！">${escapeHtml(curSuccessMsg)}</textarea>
+          <div class="hint">
+            支持 HTML 标签。<code>{count}</code> 会自动替换为客户选择的照片数量。
+            <br>示例：<code>感谢您选择了 {count} 张照片，我们会尽快处理！</code>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveSuccessMessage()"><span class="icon-check"></span> 保存提示语</button>
+      </div>
+
+      <div class="config-section">
+        <h3><span class="icon-info"></span> 系统信息</h3>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:2;">
+          <div>系统版本：1.0.0</div>
+          <div>运行环境：Node.js + JSON 文件存储</div>
+          <div>图片存储：本地文件系统</div>
+          <div>单文件限制：<strong>${maxUploadSize} MB</strong>（可在上方修改）</div>
+          <div>CDN 接口：已预留（配置CDN前缀即可启用）</div>
+          <div>页脚自定义：已开启</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- HTML 转义（防止 XSS） ---
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  window.saveCdnConfig = async function() {
+    const prefix = $('#cdnPrefix').value.trim();
+    try {
+      await fetch('/api/config/cdn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prefix })
+      });
+      toast('CDN 配置已保存');
+    } catch(e) { toast('保存失败', 'error'); }
+  };
+
+  window.saveFooterConfig = async function() {
+    const content = $('#footerContent').value;
+    try {
+      await fetch('/api/config/footer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      toast('页脚内容已保存');
+    } catch(e) { toast('保存失败', 'error'); }
+  };
+
+  window.saveSuccessMessage = async function() {
+    const message = $('#successMsgInput').value;
+    if (message.length > 500) { toast('提示语不能超过 500 个字符', 'error'); return; }
+    try {
+      await fetch('/api/config/success-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      toast('选图提示语已保存');
+    } catch(e) { toast('保存失败', 'error'); }
+  };
+
+  window.saveUploadSize = async function() {
+    const val = $('#maxUploadSize').value;
+    const mb = parseInt(val);
+    if (isNaN(mb) || mb < 1) { toast('大小至少为 1MB', 'error'); return; }
+    if (mb > 500) { toast('最大不能超过 500MB', 'error'); return; }
+    try {
+      const res = await fetch('/api/config/upload-size', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxSizeMB: mb })
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      toast(`上传限制已更新为 ${mb}MB`);
+      const d = document.getElementById('sizeDisplay');
+      if (d) d.textContent = mb;
+    } catch(e) { toast(e.message || '保存失败', 'error'); }
+  };
+
+  window.saveSiteName = async function() {
+    const name = $('#siteNameInput').value.trim();
+    if (!name) { toast('网站名称不能为空', 'error'); return; }
+    if (name.length > 50) { toast('名称不能超过 50 个字符', 'error'); return; }
+    try {
+      const res = await fetch('/api/config/site-name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      siteName = name;
+      document.title = name + ' - 管理后台';
+      toast(`网站名称已更新为「${name}」，刷新页面后全局生效`);
+    } catch(e) { toast(e.message || '保存失败', 'error'); }
+  };
+
+  // 切换副标题模式（UI 联动）
+  window.toggleSubtitleMode = function(mode) {
+    const customGroup = document.getElementById('customSubtitleGroup');
+    const hitokotoHint = document.getElementById('hitokotoHint');
+    // 更新输入框可用状态
+    if (customGroup) customGroup.style.opacity = mode === 'custom' ? '' : '0.4';
+    if (customGroup) customGroup.style.pointerEvents = mode === 'custom' ? '' : 'none';
+    if (hitokotoHint) hitokotoHint.style.display = mode === 'hitokoto' ? '' : 'none';
+    // 更新模式卡片选中样式
+    document.querySelectorAll('label:has(input[name="subtitleMode"])').forEach(label => {
+      const input = label.querySelector('input');
+      const isChecked = input && input.checked;
+      label.style.borderColor = isChecked ? 'var(--accent)' : 'var(--border)';
+      label.style.background = isChecked ? 'rgba(233,69,96,0.04)' : 'white';
+    });
+  };
+
+  window.saveEntrySubtitle = async function() {
+    // 读取选中的模式
+    const modeInput = document.querySelector('input[name="subtitleMode"]:checked');
+    const mode = modeInput ? modeInput.value : 'custom';
+    const subtitle = $('#entrySubtitleInput').value.trim();
+    if (subtitle.length > 100) { toast('副标题不能超过 100 个字符', 'error'); return; }
+    try {
+      const res = await fetch('/api/config/entry-subtitle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subtitle, mode })
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      toast('入口副标题已更新');
+    } catch(e) { toast(e.message || '保存失败', 'error'); }
+  };
+
+  window.saveEntryBgUrl = async function() {
+    const url = $('#entryBgUrl').value.trim();
+    try {
+      const res = await fetch('/api/config/entry-bg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bg: url, mode: url ? 'url' : '' })
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      toast(url ? '背景图已应用' : '背景图已清除');
+      renderSettings();
+    } catch(e) { toast(e.message || '保存失败', 'error'); }
+  };
+
+  window.uploadEntryBg = async function() {
+    const fileInput = document.getElementById('bgFileInput');
+    const file = fileInput.files[0];
+    if (!file) { toast('请先选择一张图片', 'error'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast('背景图不能超过 10MB', 'error'); return; }
+
+    const status = document.getElementById('bgUploadStatus');
+    status.textContent = '上传中...';
+    status.style.color = 'var(--text-secondary)';
+
+    const formData = new FormData();
+    formData.append('bg_image', file);
+
+    try {
+      const res = await fetch('/api/config/entry-bg/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      toast('背景图上��完成');
+      renderSettings();
+    } catch(e) {
+      status.textContent = '上传失败: ' + (e.message || '未知错误');
+      status.style.color = '#dc3545';
+    }
+  };
+
+  window.clearEntryBg = async function() {
+    try {
+      await fetch('/api/config/entry-bg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bg: '', mode: '' })
+      });
+      toast('背景图已清除');
+      renderSettings();
+    } catch(e) { toast('清除失败', 'error'); }
+  };
+
+  window.savePassword = async function() {
+    const current = $('#currentPwd').value;
+    const newPwd = $('#newPwd').value;
+    if (!current) { toast('请输入当前密码', 'error'); return; }
+    if (!newPwd || newPwd.length < 4) { toast('新密码至少4位', 'error'); return; }
+
+    try {
+      const verify = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: current })
+      });
+      if (!verify.ok) { toast('当前密码错误', 'error'); return; }
+
+      await fetch('/api/config/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPwd })
+      });
+      toast('密码已修改');
+      $('#currentPwd').value = '';
+      $('#newPwd').value = '';
+    } catch(e) { toast('修改失败', 'error'); }
+  };
+  </script>
+</body>
+</html>

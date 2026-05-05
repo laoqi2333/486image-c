@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">486Network image - 选图</title>
+  <link rel="stylesheet" href="/css/main.css?v=2">
+  <style>
+    /* 客户选图页专属样式 */
+    .client-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    }
+    .client-header .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .brand .logo-dot {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .album-title { font-size: 14px; opacity: 0.8; }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .selected-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+    .selected-badge .num { font-weight: 700; color: var(--accent); }
+    .submit-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .submit-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* 相册入口页 — 背景层 */
+    .album-entry-bg {
+      position: absolute;
+      inset: -20px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(4px) brightness(0.45);
+      transition: filter 0.5s ease;
+      z-index: 0;
+    }
+    .album-entry-bg.blur-soft { filter: blur(4px) brightness(0.45); }
+    .album-entry-bg.blur-heavy { filter: blur(16px) brightness(0.35); }
+    .album-entry-bg.no-bg {
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+      filter: none;
+    }
+
+    /* 入口页 — flex 布局撑满视口 → 页脚贴底 */
+    .album-entry-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .album-entry {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .album-entry-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      width: 400px;
+      max-width: 90vw;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+    }
+    .album-entry-card:focus-within {
+      transform: scale(1.01);
+    }
+    .album-entry-card .brand-lg {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, var(--accent), #ff6b6b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .album-entry-card .brand-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .album-entry-card input {
+      margin-bottom: 12px;
+    }
+    .album-entry-card .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 12px;
+      font-size: 15px;
+    }
+
+    /* 画廊网格 */
+    .gallery-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px 100px;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    /* 照片卡片 */
+    .photo-card {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--bg-gray);
+      aspect-ratio: 4/3;
+      transition: var(--transition);
+      user-select: none;
+    }
+    .photo-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    .photo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .photo-card:hover img { transform: scale(1.05); }
+
+    /* 选中状态 */
+    .photo-card.selected {
+      outline: 3px solid var(--accent);
+      outline-offset: -3px;
+      border-radius: var(--radius-sm);
+    }
+    .photo-card.selected::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(233, 69, 96, 0.15);
+      pointer-events: none;
+    }
+
+    /* 选中角标 - 纯CSS */
+    .select-indicator {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.8);
+      background: rgba(0,0,0,0.3);
+      transition: var(--transition);
+      z-index: 2;
+      pointer-events: none;
+    }
+    .selected .select-indicator {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .selected .select-indicator::before {
+      content: '';
+      position: absolute;
+      width: 4px; height: 12px;
+      background: white;
+      border-radius: 2px;
+      transform: rotate(40deg);
+      left: 13px; top: 5px;
+    }
+    .selected .select-indicator::after {
+      content: '';
+      position: absolute;
+      width: 4px; height: 6px;
+      background: white;
+      border-radius: 2px;
+      transform: rotate(-40deg);
+      left: 8px; top: 9px;
+    }
+
+    /* 照片编号 */
+    .photo-number {
+      position: absolute;
+      bottom: 8px; left: 8px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* 全屏预览 */
+    .preview-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+      user-select: none;
+    }
+    .preview-img-wrap {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: hidden;
+      cursor: grab;
+    }
+    .preview-img-wrap:active { cursor: grabbing; }
+    .preview-img-wrap img {
+      display: block;
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      transition: transform 0.15s ease;
+      border-radius: 4px;
+      transform-origin: center center;
+    }
+    .preview-img-wrap img.zoomed {
+      max-width: none;
+      max-height: none;
+    }
+
+    /* 顶栏按钮组 */
+    .preview-toolbar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+    .preview-toolbar button {
+      width: 40px; height: 40px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      backdrop-filter: blur(4px);
+    }
+    .preview-toolbar button:hover { background: rgba(255,255,255,0.25); }
+
+    /* 缩放信息 */
+    .preview-zoom-info {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      background: rgba(0,0,0,0.5);
+      padding: 4px 14px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .preview-zoom-info.visible { opacity: 1; }
+
+    .preview-close { order: 3; }
+    .preview-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px; height: 48px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      z-index: 5;
+    }
+    .preview-nav:hover { background: rgba(255,255,255,0.2); }
+    .preview-nav.prev { left: 20px; }
+    .preview-nav.next { right: 20px; }
+
+    /* 照片卡片下载按钮 */
+    .photo-dl-btn {
+      position: absolute;
+      bottom: 8px; right: 8px;
+      width: 30px; height: 30px;
+      border: none;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 3;
+    }
+    .photo-card:hover .photo-dl-btn { opacity: 1; }
+    .photo-dl-btn:hover { background: var(--accent); }
+    .photo-dl-btn .icon-download { width: 16px; height: 16px; }
+
+    /* 照片卡片查看大图按钮 */
+    .photo-view-btn {
+      position: absolute;
+      bottom: 8px; left: 8px;
+      width: 30px; height: 30px;
+      border: none;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 3;
+    }
+    .photo-card:hover .photo-view-btn { opacity: 1; }
+    .photo-view-btn:hover { background: var(--accent); }
+    .photo-view-btn .icon-eye { width: 16px; height: 16px; }
+
+    /* 提交成功页 */
+    .success-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+      color: white;
+      text-align: center;
+    }
+    .success-box {
+      max-width: 420px;
+      padding: 20px;
+    }
+    .success-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 4px solid #28a745;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      position: relative;
+    }
+    .success-icon::before {
+      content: '';
+      width: 6px; height: 28px;
+      background: #28a745;
+      border-radius: 3px;
+      transform: rotate(40deg);
+      position: absolute;
+      left: 36px; top: 16px;
+    }
+    .success-icon::after {
+      content: '';
+      width: 6px; height: 14px;
+      background: #28a745;
+      border-radius: 3px;
+      transform: rotate(-40deg);
+      position: absolute;
+      left: 20px; top: 26px;
+    }
+    .success-box h2 { font-size: 24px; margin-bottom: 12px; }
+    .success-box p { color: rgba(255,255,255,0.7); line-height: 1.7; }
+
+    /* 底部提交栏（移动端固定） */
+    .submit-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+      z-index: 99;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .submit-bar.visible { transform: translateY(0); }
+    .submit-bar .submit-btn-lg {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 36px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      width: 100%;
+      max-width: 400px;
+    }
+    .submit-bar .submit-btn-lg:hover { background: var(--accent-hover); }
+    .submit-bar .submit-btn-lg:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 页脚 */
+    .site-footer {
+      background: var(--primary);
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      padding: 20px;
+      text-align: center;
+      line-height: 1.8;
+    }
+    .site-footer a { color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.2s; }
+    .site-footer a:hover { color: var(--accent); }
+    .site-footer .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 4px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    .site-footer .footer-brand .dot {
+      width: 5px; height: 5px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .site-footer .footer-divider {
+      width: 24px; height: 1px;
+      background: rgba(255,255,255,0.15);
+      margin: 8px auto;
+    }
+    .site-footer .footer-custom a { color: rgba(255,255,255,0.7); }
+    .site-footer .footer-custom a:hover { color: var(--accent); }
+
+    /* 入口页页脚 — 毛玻璃圆角卡片，与背景图视觉割裂 */
+    .album-entry-wrap .site-footer {
+      position: relative;
+      z-index: 1;
+      margin: 0 16px 16px;
+      border-radius: 16px;
+      background: rgba(15, 15, 35, 0.6);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+
+    /* 画廊页面 — flex 布局撑满视口 → 页脚贴底 */
+    .gallery-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .gallery-wrap .gallery-container {
+      flex: 1;
+      padding: 24px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* 成功页 — flex 布局撑满视口 → 页脚贴底 */
+    .success-page-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+    }
+    .success-page-wrap .success-page {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .success-page-wrap .site-footer {
+      background: rgba(15, 15, 35, 0.5);
+      backdrop-filter: blur(12px) saturate(1.3);
+      -webkit-backdrop-filter: blur(12px) saturate(1.3);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ============================================================
+       手机端全面优化
+       ============================================================ */
+
+    /* 小屏：触摸友好，间距紧凑 */
+    @media (max-width: 768px) {
+      .album-entry-card { padding: 36px 24px; width: 88vw; }
+      .album-entry-card .brand-lg { font-size: 22px; }
+      .album-entry-card .brand-sub { font-size: 13px; }
+      .album-entry-card .input { padding: 12px 14px; font-size: 16px; }  /* 16px 防 iOS 缩放 */
+      .album-entry-card .btn { padding: 14px; font-size: 15px; }
+      .gallery-wrap .gallery-container { padding: 12px; }
+      .gallery-grid { gap: 10px; }
+      .client-header { padding: 14px 0; }
+      .client-header .container { gap: 6px; flex-wrap: nowrap; }
+      .brand { font-size: 14px; }
+      .brand .logo-dot { width: 8px; height: 8px; }
+      .album-title { font-size: 12px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .selected-badge { font-size: 11px; padding: 4px 8px; white-space: nowrap; }
+      .submit-btn { padding: 6px 14px; font-size: 13px; }
+      .submit-bar { padding: 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 10px)); }
+      .submit-bar .submit-btn-lg { padding: 14px 20px; font-size: 15px; }
+      .site-footer { padding: 16px 14px; font-size: 12px; }
+      .album-entry-wrap .site-footer { margin: 0 12px 12px; border-radius: 12px; }
+
+      /* 预览：全屏 + 更大的触控按钮 */
+      .preview-overlay img { max-width: 98vw; max-height: 85vh; }
+      .preview-close { top: 12px; right: 12px; width: 44px; height: 44px; }
+      .preview-nav { width: 44px; height: 44px; }
+      .preview-nav.prev { left: 8px; }
+      .preview-nav.next { right: 8px; }
+    }
+
+    @media (max-width: 600px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .client-header .container { flex-wrap: nowrap; gap: 4px; }
+      .selected-badge { font-size: 11px; padding: 3px 7px; }
+      .selected-badge .icon-check { width: 14px; height: 14px; }
+      .album-entry-card { padding: 28px 18px; }
+      .brand { font-size: 13px; }
+
+      /* 照片卡片触摸反馈 */
+      .photo-card { -webkit-tap-highlight-color: transparent; }
+      .photo-card:active { transform: scale(0.97); }
+
+      /* 提交栏按钮 */
+      .submit-bar .submit-btn-lg { max-width: 100%; }
+
+      /* 全屏预览导航位置调整 */
+      .preview-nav { top: auto; bottom: 30px; transform: none; }
+      .preview-nav.prev { left: 16px; }
+      .preview-nav.next { right: 16px; }
+
+      /* 成功页 */
+      .success-box { padding: 16px; }
+      .success-box h2 { font-size: 20px; }
+      .success-box p { font-size: 14px; }
+
+      /* 输入框底栏 */
+      .album-entry-card .brand-sub.hitokoto-source { font-size: 10px !important; }
+    }
+
+    @media (max-width: 420px) {
+      .gallery-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .photo-number { font-size: 10px; padding: 1px 6px; }
+      .select-indicator { width: 24px; height: 24px; top: 6px; right: 6px; }
+      .selected .select-indicator::before { left: 11px; top: 4px; width: 3px; height: 10px; }
+      .selected .select-indicator::after { left: 7px; top: 7px; width: 3px; height: 5px; }
+    }
+
+    /* 极窄屏：单列 */
+    @media (max-width: 360px) {
+      .gallery-grid { grid-template-columns: 1fr; gap: 6px; }
+      .album-entry-card { padding: 24px 14px; width: 92vw; }
+      .client-header .container { flex-wrap: wrap; }
+    }
+
+    /* 横屏手机 */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .album-entry { min-height: 120vh; }
+      .album-entry-card { padding: 20px 24px; }
+      .album-entry-card .brand-lg { font-size: 18px; }
+      .album-entry-card .brand-sub { font-size: 12px; margin-bottom: 12px; }
+      .success-page { min-height: 130vh; }
+    }
+
+    /* 安全区域适配（刘海屏） */
+    @supports (padding: env(safe-area-inset-top)) {
+      .client-header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+      .submit-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom, 10px)); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+  // ============================================================
+  // 486Network image - 客户选图页面
+  // ============================================================
+
+  // --- 工具函数 ---
+  const $ = (s, p) => (p || document).querySelector(s);
+  const $$ = (s, p) => [...(p || document).querySelectorAll(s)];
+  const storage = window.localStorage;
+
+  // 页脚 & 站点配置缓存
+  let footerContent = '';
+  let siteName = '486Network image';
+  let entrySubtitle = '摄影师专属返图选图平台';
+  let entrySubtitleMode = 'custom';
+  let entryBg = '';
+  let entryBgMode = '';
+  let successMessage = '';
+
+  // 加载站点配置
+  async function loadSiteConfig() {
+    try {
+      const [footerRes, nameRes, subtitleRes, bgRes, successRes] = await Promise.all([
+        fetch('/api/config/footer'),
+        fetch('/api/config/site-name'),
+        fetch('/api/config/entry-subtitle'),
+        fetch('/api/config/entry-bg'),
+        fetch('/api/config/success-message')
+      ]);
+      const footerData = await footerRes.json();
+      const nameData = await nameRes.json();
+      const subtitleData = await subtitleRes.json();
+      const bgData = await bgRes.json();
+      const successData = await successRes.json();
+      footerContent = footerData.content || '';
+      siteName = nameData.name || '486Network image';
+      entrySubtitle = subtitleData.subtitle || '摄影师专属返图选图平台';
+      entrySubtitleMode = subtitleData.mode || 'custom';
+      entryBg = bgData.bg || '';
+      entryBgMode = bgData.mode || '';
+      successMessage = successData.message || '';
+      document.title = siteName + ' - 选图';
+    } catch(e) {
+      footerContent = '<span style="opacity:0.5">486Network image</span>';
+    }
+  }
+
+  function renderFooter() {
+    return `
+      <footer class="site-footer">
+        <div class="footer-brand">
+          <span class="dot"></span> ${siteName}
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-custom">${footerContent}</div>
+      </footer>
+    `;
+  }
+
+  function toast(msg, type = 'success') {
+    const c = document.querySelector('.toast-container') || (() => {
+      const t = document.createElement('div');
+      t.className = 'toast-container';
+      document.body.appendChild(t);
+      return t;
+    })();
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  function loading(text = '加载中...') {
+    return `<div class="loading-center"><div class="spinner"></div><span>${text}</span></div>`;
+  }
+
+  // --- 状态 ---
+  const state = {
+    albumId: null,
+    albumName: '',
+    photos: [],
+    selected: new Set(),
+    clientId: storage.getItem('486_client_id') || '',
+    submitted: false
+  };
+
+  // --- 路由 ---
+  function render() {
+    const path = location.pathname;
+    const hash = location.hash.slice(1);
+    const params = new URLSearchParams(location.search);
+
+    if (state.submitted) { renderSuccess(); return; }
+
+    if (hash || params.get('album')) {
+      state.albumId = hash || params.get('album');
+      renderGallery();
+    } else {
+      renderEntry();
+    }
+  }
+
+  // --- 入⼝⻚ ---
+  function renderEntry() {
+    const app = document.getElementById('app');
+    const hasBg = entryBg && entryBgMode;
+
+    app.innerHTML = `
+      <div class="album-entry-wrap">
+        <div class="album-entry-bg ${hasBg ? 'blur-soft' : 'no-bg'}" id="entryBg"
+             ${hasBg ? `style="background-image:url('${entryBg}')"` : ''}></div>
+        <div class="album-entry">
+          <div class="album-entry-card">
+            <div class="brand-lg">${siteName}</div>
+            <div class="brand-sub" id="subtitleDisplay">${entrySubtitle}</div>
+            <div class="brand-sub hitokoto-source" id="hitokotoSource" style="font-size:11px;opacity:0.5;margin-top:-8px;display:none;"></div>
+            <input class="input" id="albumInput" placeholder="请输入相册编号" autofocus>
+            <button class="btn btn-primary" onclick="enterAlbum()">
+              <span class="icon-arrow-right"></span>
+              进入相册
+            </button>
+          </div>
+        </div>
+        ${renderFooter()}
+      </div>
+    `;
+
+    const input = $('#albumInput');
+    const bg = $('#entryBg');
+
+    // 输入框聚焦 → 背景虚化加重
+    if (bg && hasBg) {
+      input.addEventListener('focus', () => bg.className = 'album-entry-bg blur-heavy');
+      input.addEventListener('blur', () => bg.className = 'album-entry-bg blur-soft');
+    }
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') enterAlbum(); });
+
+    // 一言模式：从 API 获取一句话
+    if (entrySubtitleMode === 'hitokoto') {
+      fetchHitokoto();
+    }
+  }
+
+  // 获取一言
+  async function fetchHitokoto() {
+    const display = document.getElementById('subtitleDisplay');
+    const source = document.getElementById('hitokotoSource');
+    if (!display) return;
+    try {
+      display.textContent = '正在加载一言...';
+      const res = await fetch('https://v1.hitokoto.cn/?c=d&encode=json');
+      if (!res.ok) throw new Error('API 请求失败');
+      const data = await res.json();
+      display.textContent = data.hitokoto || '...';
+      if (source) {
+        const from = data.from || '';
+        const who = data.from_who || '';
+        const credit = [who, from].filter(Boolean).join(' —— ');
+        if (credit) {
+          source.textContent = '—— ' + credit;
+          source.style.display = 'block';
+        }
+      }
+    } catch(e) {
+      display.textContent = entrySubtitle || '摄影师专属返图选图平台';
+    }
+  }
+
+  window.enterAlbum = function() {
+    const val = $('#albumInput').value.trim();
+    if (!val) { toast('请输入相册编号', 'error'); return; }
+    location.hash = val;
+  };
+
+  // --- 画廊 ---
+  async function renderGallery() {
+    const app = document.getElementById('app');
+    app.innerHTML = loading('正在加载相册...');
+
+    try {
+      const albumRes = await fetch(`/api/client/album/${state.albumId}`);
+      if (!albumRes.ok) {
+        const err = await albumRes.json().catch(() => ({}));
+        app.innerHTML = `
+          <div class="album-entry-wrap">
+            <div class="album-entry-bg no-bg"></div>
+            <div class="album-entry">
+              <div class="album-entry-card">
+                <div style="font-size:48px;margin-bottom:16px;opacity:0.3">😕</div>
+                <h2>无法访问</h2>
+                <p style="color:var(--text-secondary);margin:12px 0 20px">${err.error || '相册不存在或已关闭'}</p>
+                <button class="btn btn-ghost" onclick="location.hash='';location.reload()">
+                  <span class="icon-arrow-left"></span> 返回
+                </button>
+              </div>
+            </div>
+            ${renderFooter()}
+          </div>
+        `;
+        return;
+      }
+      const album = await albumRes.json();
+      state.albumName = album.name;
+
+      const photosRes = await fetch(`/api/client/album/${state.albumId}/photos?client_id=${state.clientId}`);
+      const data = await photosRes.json();
+      state.photos = data.photos;
+
+      // 恢复之前的选择
+      state.selected = new Set(
+        state.photos.filter(p => p.selected).map(p => p.id)
+      );
+
+      renderGalleryUI();
+
+    } catch (e) {
+      app.innerHTML = `
+        <div class="album-entry-wrap">
+          <div class="album-entry-bg no-bg"></div>
+          <div class="album-entry">
+            <div class="album-entry-card">
+              <h2>连接失败</h2>
+              <p style="color:var(--text-secondary);margin:12px 0 20px">无法连接到服务器，请检查网络</p>
+              <button class="btn btn-ghost" onclick="location.reload()">重试</button>
+            </div>
+          </div>
+          ${renderFooter()}
+        </div>
+      `;
+    }
+  }
+
+  function renderGalleryUI() {
+    const app = document.getElementById('app');
+    const count = state.selected.size;
+
+    app.innerHTML = `
+      <div class="gallery-wrap">
+        <header class="client-header">
+          <div class="container">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="brand">
+                <span class="logo-dot"></span> ${siteName}
+              </div>
+              <div class="album-title">${state.albumName}</div>
+            </div>
+            <div class="header-right">
+              <div class="selected-badge">
+                <span class="icon-check"></span>
+                已选 <span class="num" id="selectedCount">${count}</span> 张
+              </div>
+              <button class="submit-btn" id="doSubmit" onclick="submitSelection()" ${count === 0 ? 'disabled' : ''}>
+                提交选择
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div class="gallery-container">
+          <div class="gallery-grid" id="photoGrid">
+            ${state.photos.map((p, i) => `
+              <div class="photo-card ${state.selected.has(p.id) ? 'selected' : ''}"
+                   data-id="${p.id}" data-idx="${i}"
+                   onclick="toggleSelect('${p.id}')"
+                   ondblclick="previewPhoto(${i})">
+                <div class="select-indicator"></div>
+                <div class="photo-number">#${i + 1}</div>
+                <img src="${p.thumb_url}" alt="${p.original_name}"
+                     loading="lazy"
+                     onerror="this.src='data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="%23f0f0f0"><rect width="400" height="300"/><text x="200" y="150" text-anchor="middle" fill="%23999" font-size="14">加载失败</text></svg>')}'">
+                <button class="photo-dl-btn" onclick="event.stopPropagation();downloadPhoto('${p.id}')" title="下载原图">
+                  <span class="icon-download"></span>
+                </button>
+                <button class="photo-view-btn" onclick="event.stopPropagation();previewPhoto(${i})" title="查看大图">
+                  <span class="icon-eye"></span>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        ${renderFooter()}
+      </div>
+
+      <div class="submit-bar ${count > 0 ? 'visible' : ''}" id="submitBar">
+        <button class="submit-btn-lg" onclick="submitSelection()">
+          提交选择（${count} 张）
+        </button>
+      </div>
+    `;
+  }
+
+  // --- 选图交互 ---
+  window.toggleSelect = function(photoId) {
+    if (state.submitted) return;
+    const card = $(`[data-id="${photoId}"]`);
+    if (!card) return;
+
+    if (state.selected.has(photoId)) {
+      state.selected.delete(photoId);
+      card.classList.remove('selected');
+    } else {
+      state.selected.add(photoId);
+      card.classList.add('selected');
+    }
+
+    updateUI();
+  };
+
+  function updateUI() {
+    const count = state.selected.size;
+    const el = document.getElementById('selectedCount');
+    if (el) el.textContent = count;
+    const submitBtn = document.getElementById('doSubmit');
+    if (submitBtn) submitBtn.disabled = count === 0;
+    const bar = document.getElementById('submitBar');
+    if (bar) {
+      if (count > 0) bar.classList.add('visible');
+      else bar.classList.remove('visible');
+      const btn = bar.querySelector('.submit-btn-lg');
+      if (btn) btn.textContent = `提交选择（${count} 张）`;
+    }
+  }
+
+  // --- 全屏预览 ---
+  // --- 预览状态（缩放、拖拽） ---
+  let previewZoom = 1;
+  let previewPanX = 0;
+  let previewPanY = 0;
+  let previewDragging = false;
+  let previewDragStartX = 0;
+  let previewDragStartY = 0;
+
+  window.previewPhoto = function(idx) {
+    const photo = state.photos[idx];
+    if (!photo) return;
+    previewZoom = 1;
+    previewPanX = 0;
+    previewPanY = 0;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'preview-overlay';
+    overlay.innerHTML = `
+      <div class="preview-toolbar">
+        <button onclick="previewZoomIn()" title="放大"><span class="icon-plus"></span></button>
+        <button onclick="previewZoomOut()" title="缩小"><span class="icon-minus"></span></button>
+        <button onclick="previewZoomReset()" title="重置"><span class="icon-check" style="font-size:12px;"></span></button>
+        <button onclick="openPreviewInTab()" title="查看大图"><span class="icon-eye"></span></button>
+        <button onclick="downloadPreview()" title="下载原图"><span class="icon-download"></span></button>
+        <button onclick="closePreview()" class="preview-close"><span class="icon-close"></span></button>
+      </div>
+      <button class="preview-nav prev" onclick="previewNav(-1)"><span class="icon-arrow-left"></span></button>
+      <button class="preview-nav next" onclick="previewNav(1)"><span class="icon-arrow-right"></span></button>
+      <div class="preview-img-wrap" id="previewWrap">
+        <img id="previewImg" src="${photo.url}" alt="" style="transform:translate(0,0) scale(1)">
+      </div>
+      <div class="preview-zoom-info" id="previewZoomInfo">100%</div>
+    `;
+    overlay.dataset.idx = idx;
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) closePreview();
+    });
+
+    // 鼠标滚轮缩放
+    overlay.addEventListener('wheel', e => {
+      e.preventDefault();
+      if (e.deltaY < 0) previewZoomIn();
+      else previewZoomOut();
+    }, { passive: false });
+
+    // 拖拽平移
+    const wrap = overlay.querySelector('#previewWrap');
+    wrap.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('mouseup', endDrag);
+
+    document.addEventListener('keydown', previewKeyHandler);
+    document.body.appendChild(overlay);
+  };
+
+  window.closePreview = function() {
+    const overlay = document.querySelector('.preview-overlay');
+    if (overlay) {
+      document.removeEventListener('keydown', previewKeyHandler);
+      document.removeEventListener('mousemove', doDrag);
+      document.removeEventListener('mouseup', endDrag);
+      overlay.remove();
+    }
+  };
+
+  function zoomPreview() {
+    const img = document.getElementById('previewImg');
+    const info = document.getElementById('previewZoomInfo');
+    if (img) {
+      const cls = previewZoom > 1 ? 'zoomed' : '';
+      img.className = cls;
+      img.style.transform = `translate(${previewPanX}px, ${previewPanY}px) scale(${previewZoom})`;
+    }
+    if (info) {
+      info.textContent = Math.round(previewZoom * 100) + '%';
+      info.classList.add('visible');
+      clearTimeout(info._hide);
+      info._hide = setTimeout(() => info.classList.remove('visible'), 1500);
+    }
+  }
+
+  window.previewZoomIn = function() {
+    previewZoom = Math.min(previewZoom * 1.25, 8);
+    zoomPreview();
+  };
+
+  window.previewZoomOut = function() {
+    const newZoom = previewZoom / 1.25;
+    if (newZoom < 0.25) return;
+    previewZoom = newZoom;
+    zoomPreview();
+  };
+
+  window.previewZoomReset = function() {
+    previewZoom = 1;
+    previewPanX = 0;
+    previewPanY = 0;
+    zoomPreview();
+  };
+
+  function startDrag(e) {
+    if (previewZoom <= 1) return;
+    previewDragging = true;
+    previewDragStartX = e.clientX - previewPanX;
+    previewDragStartY = e.clientY - previewPanY;
+  }
+
+  function doDrag(e) {
+    if (!previewDragging) return;
+    previewPanX = e.clientX - previewDragStartX;
+    previewPanY = e.clientY - previewDragStartY;
+    zoomPreview();
+  }
+
+  function endDrag() {
+    previewDragging = false;
+  }
+
+  window.openPreviewInTab = function() {
+    const overlay = document.querySelector('.preview-overlay');
+    if (!overlay) return;
+    const idx = parseInt(overlay.dataset.idx);
+    const photo = state.photos[idx];
+    if (!photo) return;
+    window.open(photo.url, '_blank');
+  };
+
+  window.downloadPreview = function() {
+    const overlay = document.querySelector('.preview-overlay');
+    if (!overlay) return;
+    const idx = parseInt(overlay.dataset.idx);
+    const photo = state.photos[idx];
+    if (!photo) return;
+    const a = document.createElement('a');
+    a.href = `/api/albums/${state.albumId}/photos/${photo.id}/download`;
+    a.download = '';
+    a.click();
+  };
+
+  window.previewNav = function(dir) {
+    const overlay = document.querySelector('.preview-overlay');
+    if (!overlay) return;
+    let idx = parseInt(overlay.dataset.idx) + dir;
+    if (idx < 0) idx = state.photos.length - 1;
+    if (idx >= state.photos.length) idx = 0;
+    overlay.dataset.idx = idx;
+    previewZoom = 1;
+    previewPanX = 0;
+    previewPanY = 0;
+    const photo = state.photos[idx];
+    document.getElementById('previewImg').src = photo.url;
+    zoomPreview();
+  };
+
+  function previewKeyHandler(e) {
+    if (e.key === 'Escape') closePreview();
+    if (e.key === 'ArrowLeft') previewNav(-1);
+    if (e.key === 'ArrowRight') previewNav(1);
+    if (e.key === '+' || e.key === '=') previewZoomIn();
+    if (e.key === '-') previewZoomOut();
+    if (e.key === '0') previewZoomReset();
+  }
+
+  // --- 下载单张照片（使用服务端 API 保证 UTF-8 文件名） ---
+  window.downloadPhoto = function(photoId) {
+    const photo = state.photos.find(p => p.id === photoId);
+    if (!photo) return;
+    // 用服务端 API 下载，后端会设置正确的 UTF-8 Content-Disposition
+    const a = document.createElement('a');
+    a.href = `/api/albums/${state.albumId}/photos/${photoId}/download`;
+    a.download = '';
+    a.click();
+  };
+
+  // --- 提交选择 ---
+  window.submitSelection = async function() {
+    if (state.selected.size === 0) { toast('请至少选择一张照片', 'error'); return; }
+    if (state.submitted) return;
+
+    try {
+      const res = await fetch(`/api/client/album/${state.albumId}/select`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photo_ids: [...state.selected],
+          client_id: state.clientId
+        })
+      });
+      if (!res.ok) throw new Error('提交失败');
+      const data = await res.json();
+      state.clientId = data.client_id;
+      storage.setItem('486_client_id', data.client_id);
+      state.submitted = true;
+      renderSuccess();
+    } catch (e) {
+      toast('提交失败，请重试', 'error');
+    }
+  };
+
+  function renderSuccess() {
+    const app = document.getElementById('app');
+    // 替换 {count} 占位符为实际选择数量
+    const msg = (successMessage || '您已成功选择了 <strong style="color:var(--accent)">{count}</strong> 张照片。<br>摄影师收到后会尽快处理，请耐心等待。')
+      .replace(/\{count\}/g, state.selected.size);
+    app.innerHTML = `
+      <div class="success-page-wrap">
+        <div class="success-page">
+          <div class="success-box">
+            <div class="success-icon"></div>
+            <h2>选择已提交</h2>
+            <p>${msg}</p>
+          </div>
+        </div>
+        ${renderFooter()}
+      </div>
+    `;
+  }
+
+  // --- 初始化 ---
+  window.addEventListener('hashchange', render);
+  loadSiteConfig().then(render);
+  </script>
+</body>
+</html>
