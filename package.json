@@ -1,0 +1,15 @@
+{
+  "name": "486network-image",
+  "version": "1.0.0",
+  "description": "摄影师返图选图系统 - 486Network image",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.0"
+  }
+}
