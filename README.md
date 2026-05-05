@@ -112,14 +112,14 @@ npm -v    # 10.x.x
 ### 2. 下载源码
 
 ```bash
-git clone https://github.com/your-username/486network-image.git
+git clone https://github.com/laoqi2333/486image-c
 # 或直接上传 486network-image/ 目录到服务器
 ```
 
 ### 3. 安装依赖 & 启动
 
 ```bash
-cd 486network-image
+cd /Path/to/your/file
 npm install
 node server.js
 ```
