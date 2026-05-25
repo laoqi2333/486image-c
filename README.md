@@ -10,6 +10,7 @@
 ### 移动端
 <img width="516" height="1119" alt="移动端入口页" src="https://github.com/user-attachments/assets/c7d72a31-f119-4d6a-acbf-352d19ac8b22" />
 <img width="516" height="1119" alt="选图页" src="https://github.com/user-attachments/assets/ceb264a4-2e6c-4203-80d2-5747befd21fb" />
+
 ### 桌面端
 <img width="2560" height="1229" alt="入口页" src="https://github.com/user-attachments/assets/09a14bf6-04ed-422d-bfa6-30c8d21e355a" />
 <img width="2560" height="1229" alt="选图页" src="https://github.com/user-attachments/assets/e783033d-5405-4eaa-a645-6568bc4ce646" />
