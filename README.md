@@ -7,10 +7,10 @@
 
 ## 功能一览
 ### 界面一览
-#### 移动端
+### 移动端
 <img width="516" height="1119" alt="移动端入口页" src="https://github.com/user-attachments/assets/c7d72a31-f119-4d6a-acbf-352d19ac8b22" />
 <img width="516" height="1119" alt="选图页" src="https://github.com/user-attachments/assets/ceb264a4-2e6c-4203-80d2-5747befd21fb" />
-#### 桌面端
+### 桌面端
 <img width="2560" height="1229" alt="入口页" src="https://github.com/user-attachments/assets/09a14bf6-04ed-422d-bfa6-30c8d21e355a" />
 <img width="2560" height="1229" alt="选图页" src="https://github.com/user-attachments/assets/e783033d-5405-4eaa-a645-6568bc4ce646" />
 <img width="2560" height="1229" alt="选图结果后台" src="https://github.com/user-attachments/assets/a3241706-f5fc-4cc3-b6da-f480b97460d5" />
@@ -230,10 +230,15 @@ ossutil sync /opt/486network-image/uploads/ oss://your-bucket/uploads/
 - 纯 CSS 图标设计受 [CSS ICON](https://cssicon.space/) 启发
 
 ---
+## AI生成声明
+- 本项目的部分内容由OpenClaw + Deepseek V4辅助编写，具体内容如下：
+- 1.前后端API对接
+- 2.CDN支持
+- 3.一言API对接
+- 4.纯CSS的按钮图标适配
+- 5.本README自述文件
+- 如果将本程序用作特定用途，请注意AI生成内容是否合规，并在保留作者信息的前提下自行修改
 
 ## 许可
 
 MIT © SY Studio
-
-_⚠这篇README.MD由OpenClaw+ Deepseek V4生成，这么耗时耗力的任务绝对不能由本PO完成（_
-_顺带一提，部分代码优化也由AI进行_
