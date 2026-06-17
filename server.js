@@ -29,7 +29,10 @@ const defaultData = {
     cdn_prefix: '',
     max_upload_size: 50, // 单位 MB，默认 50MB
     footer_content: '<a href="https://486network.com" target="_blank" style="color:rgba(255,255,255,0.6);text-decoration:none;">© 2025 486Network image</a> — Powered by 486Network',
-    success_message: '您已成功选择了 <strong style="color:var(--accent)">{count}</strong> 张照片。<br>摄影师收到后会尽快处理，请耐心等待。'
+    success_message: '您已成功选择了 <strong style="color:var(--accent)">{count}</strong> 张照片。<br>摄影师收到后会尽快处理，请耐心等待。',
+    suggestion_subtitle: '您可以对每张照片分别写下后期处理要求（色调、裁剪、水印等）。不填也可以直接提交。',
+    suggestion_placeholder: '例如：调暖色调、保留原色、修掉背景杂物……',
+    share_template: '请查看相册「{name}」并挑选您喜欢的照片\n🔗 {link}\n\n进入后输入相册编号即可查看。'
   },
   albums: {}  // key: albumId, value: { id, name, password, cdn_prefix, cover, status, created_at, photos: {}, selections: {} }
 };
@@ -154,6 +157,39 @@ app.post('/api/config/success-message', (req, res) => {
   const { message } = req.body;
   if (message !== undefined && message.length > 500) return res.status(400).json({ error: '提示语不能超过 500 个字符' });
   db.config.success_message = message || '';
+  saveDB();
+  res.json({ success: true });
+});
+
+app.get('/api/config/suggestion-config', (req, res) => {
+  res.json({
+    subtitle: db.config.suggestion_subtitle || '',
+    placeholder: db.config.suggestion_placeholder || ''
+  });
+});
+
+app.post('/api/config/suggestion-config', (req, res) => {
+  const { subtitle, placeholder } = req.body;
+  if (subtitle !== undefined) {
+    if (subtitle.length > 200) return res.status(400).json({ error: '副标题不能超过 200 个字符' });
+    db.config.suggestion_subtitle = subtitle;
+  }
+  if (placeholder !== undefined) {
+    if (placeholder.length > 200) return res.status(400).json({ error: '占位符不能超过 200 个字符' });
+    db.config.suggestion_placeholder = placeholder;
+  }
+  saveDB();
+  res.json({ success: true, subtitle: db.config.suggestion_subtitle, placeholder: db.config.suggestion_placeholder });
+});
+
+app.get('/api/config/share-template', (req, res) => {
+  res.json({ template: db.config.share_template || '' });
+});
+
+app.post('/api/config/share-template', (req, res) => {
+  const { template } = req.body;
+  if (template !== undefined && template.length > 1000) return res.status(400).json({ error: '模板不能超过 1000 个字符' });
+  db.config.share_template = template || '';
   saveDB();
   res.json({ success: true });
 });
@@ -473,7 +509,7 @@ app.post('/api/client/album/:id/select', (req, res) => {
   const album = db.albums[req.params.id];
   if (!album) return res.status(404).json({ error: '相册不存在' });
 
-  const { photo_ids, client_id, notes } = req.body;
+  const { photo_ids, client_id, notes, photo_suggestions } = req.body;
   if (!photo_ids || !Array.isArray(photo_ids)) return res.status(400).json({ error: '请选择照片' });
 
   const cid = client_id || uuidv4().slice(0, 12);
@@ -481,6 +517,7 @@ app.post('/api/client/album/:id/select', (req, res) => {
   album.selections[cid] = {
     client_id: cid,
     notes: notes || '',
+    photo_suggestions: photo_suggestions || {},
     photo_ids: [...new Set(photo_ids)],
     created_at: new Date().toLocaleString('zh-CN', { hour12: false })
   };
@@ -497,6 +534,7 @@ app.get('/api/albums/:id/selections', (req, res) => {
   const result = Object.values(album.selections).map(s => ({
     client_id: s.client_id,
     notes: s.notes,
+    photo_suggestions: s.photo_suggestions || {},
     selected_at: s.created_at,
     count: (s.photo_ids || []).length,
     photos: (s.photo_ids || []).map(pid => {

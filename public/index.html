@@ -626,6 +626,148 @@
       .client-header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
       .submit-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom, 10px)); }
     }
+
+    /* ============================================================
+       后期建议弹窗（逐张照片）
+       ============================================================ */
+    .suggestion-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+    .suggestion-box {
+      background: white;
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      width: 520px;
+      max-width: 92vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: scaleIn 0.2s ease;
+    }
+    .suggestion-box h2 {
+      font-size: 20px;
+      margin-bottom: 4px;
+      color: var(--text-primary, #1a1a2e);
+      flex-shrink: 0;
+    }
+    .suggestion-box .suggestion-hint {
+      font-size: 13px;
+      color: var(--text-secondary, #666);
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    .suggestion-list {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-right: 4px;
+    }
+    .suggestion-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .suggestion-item .sug-thumb {
+      flex-shrink: 0;
+      width: 72px;
+      height: 54px;
+      border-radius: 6px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .suggestion-item .sug-thumb:hover { transform: scale(1.05); }
+    .suggestion-item .sug-input {
+      flex: 1;
+      min-width: 0;
+    }
+    .suggestion-item .sug-filename {
+      font-size: 11px;
+      color: var(--text-secondary, #999);
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .suggestion-item textarea {
+      width: 100%;
+      height: 46px;
+      padding: 8px 10px;
+      border: 1px solid var(--border, #e0e0e0);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .suggestion-item textarea:focus {
+      outline: none;
+      border-color: var(--accent, #e94560);
+      box-shadow: 0 0 0 3px rgba(233,69,96,0.1);
+    }
+    .suggestion-box .suggestion-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-shrink: 0;
+      padding-top: 12px;
+      border-top: 1px solid var(--border, #eee);
+    }
+    .suggestion-box .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border, #e0e0e0);
+      color: var(--text-secondary, #666);
+      padding: 10px 20px;
+      border-radius: var(--radius-sm, 8px);
+      cursor: pointer;
+      font-size: 14px;
+      transition: var(--transition, 0.2s);
+    }
+    .suggestion-box .btn-ghost:hover {
+      background: var(--bg-gray, #f5f5f5);
+    }
+    .suggestion-box .btn-primary {
+      background: var(--accent, #e94560);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: var(--radius-sm, 8px);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: var(--transition, 0.2s);
+    }
+    .suggestion-box .btn-primary:hover {
+      opacity: 0.9;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @media (max-width: 480px) {
+      .suggestion-box { padding: 20px 16px; max-height: 92vh; }
+      .suggestion-box h2 { font-size: 17px; }
+      .suggestion-item .sug-thumb { width: 56px; height: 42px; }
+      .suggestion-item textarea { height: 42px; font-size: 16px; }
+      .suggestion-box .suggestion-actions { flex-direction: column; }
+      .suggestion-box .suggestion-actions button { width: 100%; text-align: center; }
+    }
   </style>
 </head>
 <body>
@@ -649,22 +791,26 @@
   let entryBg = '';
   let entryBgMode = '';
   let successMessage = '';
+  let sugSubtitle = '';
+  let sugPlaceholder = '';
 
   // 加载站点配置
   async function loadSiteConfig() {
     try {
-      const [footerRes, nameRes, subtitleRes, bgRes, successRes] = await Promise.all([
+      const [footerRes, nameRes, subtitleRes, bgRes, successRes, sugCfgRes] = await Promise.all([
         fetch('/api/config/footer'),
         fetch('/api/config/site-name'),
         fetch('/api/config/entry-subtitle'),
         fetch('/api/config/entry-bg'),
-        fetch('/api/config/success-message')
+        fetch('/api/config/success-message'),
+        fetch('/api/config/suggestion-config')
       ]);
       const footerData = await footerRes.json();
       const nameData = await nameRes.json();
       const subtitleData = await subtitleRes.json();
       const bgData = await bgRes.json();
       const successData = await successRes.json();
+      const sugCfgData = await sugCfgRes.json();
       footerContent = footerData.content || '';
       siteName = nameData.name || '486Network image';
       entrySubtitle = subtitleData.subtitle || '摄影师专属返图选图平台';
@@ -672,6 +818,8 @@
       entryBg = bgData.bg || '';
       entryBgMode = bgData.mode || '';
       successMessage = successData.message || '';
+      sugSubtitle = sugCfgData.subtitle || '';
+      sugPlaceholder = sugCfgData.placeholder || '';
       document.title = siteName + ' - 选图';
     } catch(e) {
       footerContent = '<span style="opacity:0.5">486Network image</span>';
@@ -702,6 +850,12 @@
     el.textContent = msg;
     c.appendChild(el);
     setTimeout(() => el.remove(), 3000);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   function loading(text = '加载中...') {
@@ -1132,10 +1286,69 @@
     a.click();
   };
 
-  // --- 提交选择 ---
+  // --- 提交选择（先弹窗问后期建议） ---
   window.submitSelection = async function() {
     if (state.selected.size === 0) { toast('请至少选择一张照片', 'error'); return; }
     if (state.submitted) return;
+
+    // 显示后期建议弹窗
+    showSuggestionModal();
+  };
+
+  // --- 后期建议弹窗（逐张照片） ---
+  function showSuggestionModal() {
+    const existing = document.querySelector('.suggestion-overlay');
+    if (existing) existing.remove();
+
+    const selectedPhotos = state.photos.filter(p => state.selected.has(p.id));
+
+    const itemsHTML = selectedPhotos.map(p => `
+      <div class="suggestion-item">
+        <img class="sug-thumb" src="${p.thumb_url}" alt="${p.original_name}"
+             onclick="window.open('${p.url}','_blank')"
+             onerror="this.style.display='none'">
+        <div class="sug-input">
+          <div class="sug-filename">${escapeHtml(p.original_name)}</div>
+          <textarea id="sug_${p.id}" placeholder="${escapeHtml(sugPlaceholder)}"></textarea>
+        </div>
+      </div>
+    `).join('');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'suggestion-overlay';
+    overlay.innerHTML = `
+      <div class="suggestion-box">
+        <h2>后期建议（选填）</h2>
+        ${sugSubtitle ? `<p class="suggestion-hint">${escapeHtml(sugSubtitle)}</p>` : ''}
+        <div class="suggestion-list">
+          ${itemsHTML}
+        </div>
+        <div class="suggestion-actions">
+          <button class="btn-ghost" onclick="closeSuggestionModal()">暂不提交</button>
+          <button class="btn-primary" onclick="confirmSubmit()">直接提交</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  window.closeSuggestionModal = function() {
+    const overlay = document.querySelector('.suggestion-overlay');
+    if (overlay) overlay.remove();
+  };
+
+  window.confirmSubmit = async function() {
+    // 收集每张照片的建议
+    const photo_suggestions = {};
+    state.photos.filter(p => state.selected.has(p.id)).forEach(p => {
+      const el = document.getElementById('sug_' + p.id);
+      if (el) {
+        const val = el.value.trim();
+        if (val) photo_suggestions[p.id] = val;
+      }
+    });
+
+    closeSuggestionModal();
 
     try {
       const res = await fetch(`/api/client/album/${state.albumId}/select`, {
@@ -1143,7 +1356,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           photo_ids: [...state.selected],
-          client_id: state.clientId
+          client_id: state.clientId,
+          photo_suggestions
         })
       });
       if (!res.ok) throw new Error('提交失败');

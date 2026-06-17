@@ -9,7 +9,10 @@
     "cdn_prefix": "",
     "max_upload_size": 50,
     "footer_content": "<a href=\"https://486network.com\" target=\"_blank\" style=\"color:rgba(255,255,255,0.6);text-decoration:none;\">© 2026 486Network image</a> — Powered by SY Studio",
-    "success_message": "您已成功选择了 <strong style=\"color:var(--accent)\">{count}</strong> 张照片。<br>摄影师收到后会尽快处理，请耐心等待。"
+    "success_message": "您已成功选择了 <strong style=\"color:var(--accent)\">{count}</strong> 张照片。<br>摄影师收到后会尽快处理，请耐心等待。",
+    "suggestion_subtitle": "您可以对每张照片分别写下后期处理要求（色调、裁剪、水印等）。不填也可以直接提交。",
+    "suggestion_placeholder": "例如：调暖色调、保留原色、修掉背景杂物……",
+    "share_template": "请查看相册「{name}」并挑选您喜欢的照片\n🔗 {link}\n\n进入后输入相册编号即可查看。"
   },
   "albums": {}
 }
