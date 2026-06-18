@@ -216,6 +216,7 @@ ossutil sync /opt/486network-image/uploads/ oss://your-bucket/uploads/
 - 2.一言API对接
 - 3.纯CSS的按钮图标适配
 - 4.本README自述文件的部分内容
+- 5.源代码中的代码注释生成
 - 如果将本程序用作特定用途，请注意AI生成内容是否合规，并在保留作者信息与AI生成声明的前提下自行修改
 
 ## 许可
